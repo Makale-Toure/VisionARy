@@ -178,7 +178,7 @@ class MainActivity : ComponentActivity() {
                     .width(200.dp) // Largeur du bouton
                     .height(56.dp) // Hauteur du bouton
                     .padding(bottom = 16.dp)
-                    .border(3.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
+                    .border(4.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
                     , // Marge du bouton
                 containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
                 contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
