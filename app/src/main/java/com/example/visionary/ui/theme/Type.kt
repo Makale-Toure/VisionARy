@@ -63,7 +63,7 @@ val Typography = Typography(
         fontSize = 64.sp,
         lineHeight = 75.sp,
         letterSpacing = 0.sp
-    ),
+    )
     /*// Ultra Large Label
     labelExtraLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,

@@ -11,11 +11,40 @@ import androidx.activity.compose.setContent
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults.containerColor
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.visionary.screens.MainScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.ui.theme.VisionARyTheme
+import com.example.visionary.Camera.CameraPreview
+import com.example.visionary.models.PhotoViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -36,6 +65,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
+                // Call the MainScreen composable function
                 MainScreen()
             }
         }
@@ -84,7 +114,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         )
-
     }
 
     // Check if the required permissions are granted
@@ -105,4 +134,69 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    // Composable function to display the "Main screen"
+    @Composable
+    fun MainScreen() {
+        //
+        val context = LocalContext.current
+
+        val scope = rememberCoroutineScope()
+
+        // Create and remember the Camera controller
+        val imageCaptureController = remember {
+            LifecycleCameraController(context).apply {
+                setEnabledUseCases(
+                    CameraController.IMAGE_CAPTURE
+                )
+            }
+        }
+
+        // Create the ViewModel
+        val viewModel = viewModel<PhotoViewModel>()
+
+        val bitmaps by viewModel.bitmaps.collectAsState()
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            // CAlling Composable "CameraPreview" to display the camera preview in the app
+            CameraPreview(
+                controller = imageCaptureController,
+                modifier = Modifier.fillMaxSize() // Remplir l'écran
+            )
+
+            FloatingActionButton(
+
+                onClick = {
+                    // Code pour l'action du bouton
+                    takePhoto(
+                        imageCaptureController,
+                        onPhotoTaken = viewModel::onPhotoTaken,
+                    )
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter) // Aligner le bouton en bas à droite
+                    .width(200.dp) // Largeur du bouton
+                    .height(56.dp) // Hauteur du bouton
+                    .padding(bottom = 16.dp)
+                    .border(4.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
+                    , // Marge du bouton
+                containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
+                contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.radio_button_checked_32),
+                        contentDescription = "Take a photo", // Accesibilité pour l'icône
+                        tint = MaterialTheme.colorScheme.onBackground // Icône en onBackground
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Take a photo",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
+                    )
+                }
+            }
+        }
+    }
 }

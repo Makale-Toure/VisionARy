@@ -15,14 +15,19 @@ private val DarkColorScheme = darkColorScheme(
     primary = Orange,
     secondary = White,
     tertiary = Blue,
-    background = Charcoal
+    background = Charcoal,
+    onBackground = White,
+    error = Red
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Orange,
+    onPrimary = White,
     secondary = Black,
     tertiary = Blue,
     background = White,
+    onBackground = Black,
+    error = Red
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -39,7 +44,7 @@ private val LightColorScheme = lightColorScheme(
 fun VisionARyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

@@ -1,8 +1,5 @@
 package com.example.visionary.screens
 
-import  com.example.visionary.screens.HomeScreen
-import  com.example.visionary.screens.SaveScreen
-
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -17,14 +14,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
 
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun NavScreen(modifier: Modifier = Modifier) {
     //Create a navigation controller
     val navController = rememberNavController()
 
