@@ -24,4 +24,6 @@ val ShadowWhite = Color(0x1AFAFFFF)
 val ShadowWhite2 = Color(0x66FFFFFF)
 
 val White = Color(0xffffffff)
-val Black = Color(0x00000000)
+val Black = Color(0xff000000)
+
+val Red = Color(0xFFD32F2F)
