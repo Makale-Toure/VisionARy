@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.ui.theme.VisionARyTheme
 import com.example.visionary.Camera.CameraPreview
+import com.example.visionary.models.PhotoViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -95,7 +96,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         )
-
     }
 
     // Check if the required permissions are granted
@@ -137,9 +137,9 @@ fun MainScreen() {
     }
 
     // Create the ViewModel
-    //val viewModel = viewModel<PhotoViewModel>()
+    val viewModel = viewModel<PhotoViewModel>()
 
-    //val bitmaps by viewModel.bitmaps.collectAsState()
+    val bitmaps by viewModel.bitmaps.collectAsState()
 
     // CAlling Composable "CameraPreview" to display the camera preview in the app
     CameraPreview(
