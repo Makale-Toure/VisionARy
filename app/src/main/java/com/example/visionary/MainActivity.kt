@@ -14,6 +14,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.visionary.screens.MainScreen
 import com.example.visionary.ui.theme.VisionARyTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
+                MainScreen()
             }
         }
     }
