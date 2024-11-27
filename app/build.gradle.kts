@@ -59,6 +59,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.core)
+    implementation("com.google.mlkit:text-recognition:16.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
