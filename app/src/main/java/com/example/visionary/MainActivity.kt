@@ -11,10 +11,21 @@ import androidx.activity.compose.setContent
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.ui.theme.VisionARyTheme
+import com.example.visionary.Camera.CameraPreview
 
 class MainActivity : ComponentActivity() {
 
@@ -35,6 +46,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
+                // Call the MainScreen composable function
+                MainScreen()
             }
         }
     }
@@ -104,3 +117,36 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+
+// Composable function to display the "Main screen"
+@Composable
+fun MainScreen() {
+    //
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+
+    // Create and remember the Camera controller
+    val controller = remember {
+        LifecycleCameraController(context).apply {
+            setEnabledUseCases(
+                CameraController.IMAGE_CAPTURE
+            )
+        }
+    }
+
+    // Create the ViewModel
+    //val viewModel = viewModel<PhotoViewModel>()
+
+    //val bitmaps by viewModel.bitmaps.collectAsState()
+
+    // CAlling Composable "CameraPreview" to display the camera preview in the app
+    CameraPreview(
+        controller = controller,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+
+
