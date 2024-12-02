@@ -1,10 +1,16 @@
 package com.example.visionary.screens
 
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
@@ -21,8 +28,6 @@ import com.example.visionary.components.NavItem
 
 @Composable
 fun NavScreen(modifier: Modifier = Modifier) {
-    //Create a navigation controller
-    val navController = rememberNavController()
 
     // List of navigation items
     val navItemList = listOf(
@@ -37,8 +42,22 @@ fun NavScreen(modifier: Modifier = Modifier) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                modifier = Modifier.padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground
+            ) {
                 navItemList.forEachIndexed { index, navItem ->
+                    if (index > 0) {
+                        // On ajoute du séparateur entre les icônes
+                        Divider(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .padding(top = 16.dp, bottom = 16.dp)
+                                .height(70.dp)
+                                .width(1.dp)
+                        )
+                    }
                     NavigationBarItem(
                         selected = selectedIndex == index,
                         onClick = {
@@ -46,13 +65,33 @@ fun NavScreen(modifier: Modifier = Modifier) {
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(id = navItem.icon), // Charger l'icône via painterResource
-                                contentDescription = "Icon"
+                                // On charge l'icône via painterResource
+                                painter = painterResource(id = navItem.icon),
+                                contentDescription = "Icon",
+                                tint = if (selectedIndex == index)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.secondary
                             )
                         },
                         label = {
-                            Text(text = navItem.label)
-                        }
+                            Text(
+                                text = navItem.label,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (selectedIndex == index)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                            indicatorColor = MaterialTheme.colorScheme.secondary
+                        )
                     )
                 }
             }
