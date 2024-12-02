@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -41,16 +42,32 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.ui.theme.VisionARyTheme
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.models.PhotoViewModel
+import com.example.visionary.screens.NavScreen
+
 
 class MainActivity : ComponentActivity() {
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+        insetsController.apply {
+            hide(WindowInsetsCompat.Type.statusBars())
+            hide(WindowInsetsCompat.Type.navigationBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
+
         // Check if the required permissions are granted by the user
         if (!hasRequiredPermissions()) {
             // Log the info
@@ -61,60 +78,17 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+
         // Display the content of the app
         setContent {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
                 // Call the MainScreen composable function
-                MainScreen()
+                NavScreen()
             }
         }
     }
 
-    // Function to take a photo using the camera controller
-    private fun takePhoto(
-        controller : LifecycleCameraController,     // The camera controller
-        onPhotoTaken : (Bitmap) -> Unit             // Callback to be called when the photo is successfully taken
-    ) {
-        controller.takePicture(
-            ContextCompat.getMainExecutor(applicationContext),
-            object : ImageCapture.OnImageCapturedCallback() {
-
-                // Override the method to get the image and convert it to a Bitmap that can be used better in processing
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    // Convert the image to a Bitmap
-                    super.onCaptureSuccess(image)
-
-                    // We use Matrix to rotate the image if the photo was taken with a special orientation
-                    val matrix = Matrix().apply {
-                        // Rotate the image by the rotation degrees
-                        postRotate(image.imageInfo.rotationDegrees.toFloat())
-                    }
-
-                    val bitmap = Bitmap.createBitmap(
-                        image.toBitmap(),       // Convert the image to a Bitmap
-                        0,                      // Start x
-                        0,                      // Start y
-                        image.width,            // Width
-                        image.height,           // Height
-                        matrix,                 // Matrix
-                        true                // Filter to smooth the edges of the rotated image
-                    )
-                    // Log the info
-                    Log.i("CameraX", "Photo taken successfully")
-                    // Call the callback function with the rotated bitmap
-                    onPhotoTaken(bitmap)
-                }
-
-                // Override the method to log the error
-                override fun onError(exception: ImageCaptureException) {
-                    super.onError(exception)
-                    // Log the error
-                    Log.e("CameraX", "Error while taking a photo", exception)
-                }
-            }
-        )
-    }
 
     // Check if the required permissions are granted
     // Camera permission
@@ -134,69 +108,4 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    // Composable function to display the "Main screen"
-    @Composable
-    fun MainScreen() {
-        //
-        val context = LocalContext.current
-
-        val scope = rememberCoroutineScope()
-
-        // Create and remember the Camera controller
-        val imageCaptureController = remember {
-            LifecycleCameraController(context).apply {
-                setEnabledUseCases(
-                    CameraController.IMAGE_CAPTURE
-                )
-            }
-        }
-
-        // Create the ViewModel
-        val viewModel = viewModel<PhotoViewModel>()
-
-        val bitmaps by viewModel.bitmaps.collectAsState()
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            // CAlling Composable "CameraPreview" to display the camera preview in the app
-            CameraPreview(
-                controller = imageCaptureController,
-                modifier = Modifier.fillMaxSize() // Remplir l'écran
-            )
-
-            FloatingActionButton(
-
-                onClick = {
-                    // Code pour l'action du bouton
-                    takePhoto(
-                        imageCaptureController,
-                        onPhotoTaken = viewModel::onPhotoTaken,
-                    )
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter) // Aligner le bouton en bas à droite
-                    .width(200.dp) // Largeur du bouton
-                    .height(56.dp) // Hauteur du bouton
-                    .padding(bottom = 16.dp)
-                    .border(4.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
-                    , // Marge du bouton
-                containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
-                contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
-                shape = MaterialTheme.shapes.extraLarge
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.radio_button_checked_32),
-                        contentDescription = "Take a photo", // Accesibilité pour l'icône
-                        tint = MaterialTheme.colorScheme.onBackground // Icône en onBackground
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        "Take a photo",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
-                    )
-                }
-            }
-        }
-    }
 }
