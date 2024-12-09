@@ -101,7 +101,7 @@ fun HomeScreen() {
                     imageCaptureController,
                     onPhotoTaken = viewModel::onPhotoTaken,
                 )
-                vibrate(context)
+                vibratePhoto(context)
                 //vibrateCancel(context)
 
             },
