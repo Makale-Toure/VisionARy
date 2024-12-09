@@ -57,10 +57,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Enable the edge-to-edge display for Compose
         enableEdgeToEdge()
 
+        // Hide the status and navigation bars and display them when the user slides
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-
         insetsController.apply {
             hide(WindowInsetsCompat.Type.statusBars())
             hide(WindowInsetsCompat.Type.navigationBars())

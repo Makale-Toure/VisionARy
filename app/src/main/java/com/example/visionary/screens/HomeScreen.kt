@@ -3,6 +3,9 @@ package com.example.visionary.screens
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -15,17 +18,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -66,6 +75,23 @@ fun HomeScreen() {
             modifier = Modifier.fillMaxSize() // Remplir l'écran
         )
 
+
+        LazyColumn {
+            items(bitmaps) { bitmap ->
+                var extractedText by remember { mutableStateOf("") }
+                LaunchedEffect(bitmaps) {
+                    viewModel.extractTextFromImage(bitmap) { text ->
+                        extractedText = text
+                    }
+                }
+                Text(text = extractedText,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyLarge
+                    )
+            }
+        }
+
         FloatingActionButton(
 
             onClick = {
@@ -75,11 +101,15 @@ fun HomeScreen() {
                     imageCaptureController,
                     onPhotoTaken = viewModel::onPhotoTaken,
                 )
+                vibratePhoto(context)
+                //vibrateCancel(context)
+
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter) // Aligner le bouton en bas à droite
                 .width(200.dp) // Largeur du bouton
                 .height(56.dp) // Hauteur du bouton
+                .offset(y = (-100).dp)
                 .padding(bottom = 16.dp)
                 .border(
                     4.dp,
@@ -151,4 +181,16 @@ private fun takePhoto(
             }
         }
     )
+}
+
+// Function test vibrate
+fun vibrate(context: Context){
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100), -1))
+}
+
+// Function to vibrate the phone (Haptic feedback)
+fun vibratePhoto(context: Context){
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
 }
