@@ -82,57 +82,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
-                // Call the MainScreen composable function
+                // Call the NavScreen composable function
                 NavScreen()
             }
         }
     }
-
-    // Function to take a photo using the camera controller
-    private fun takePhoto(
-        controller : LifecycleCameraController,     // The camera controller
-        onPhotoTaken : (Bitmap) -> Unit             // Callback to be called when the photo is successfully taken
-    ) {
-        controller.takePicture(
-            ContextCompat.getMainExecutor(applicationContext),
-            object : ImageCapture.OnImageCapturedCallback() {
-
-                // Override the method to get the image and convert it to a Bitmap that can be used better in processing
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    // Convert the image to a Bitmap
-                    super.onCaptureSuccess(image)
-
-                    // We use Matrix to rotate the image if the photo was taken with a special orientation
-                    val matrix = Matrix().apply {
-                        // Rotate the image by the rotation degrees
-                        postRotate(image.imageInfo.rotationDegrees.toFloat())
-                    }
-
-                    val bitmap = Bitmap.createBitmap(
-                        image.toBitmap(),       // Convert the image to a Bitmap
-                        0,                      // Start x
-                        0,                      // Start y
-                        image.width,            // Width
-                        image.height,           // Height
-                        matrix,                 // Matrix
-                        true                // Filter to smooth the edges of the rotated image
-                    )
-                    // Log the info
-                    Log.i("CameraX", "Photo taken successfully")
-                    // Call the callback function with the rotated bitmap
-                    onPhotoTaken(bitmap)
-                }
-
-                // Override the method to log the error
-                override fun onError(exception: ImageCaptureException) {
-                    super.onError(exception)
-                    // Log the error
-                    Log.e("CameraX", "Error while taking a photo", exception)
-                }
-            }
-        )
-    }
-
     // Check if the required permissions are granted
     // Camera permission
     private fun hasRequiredPermissions(): Boolean {
