@@ -1,7 +1,10 @@
 package com.example.visionary.screens
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -21,13 +24,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
+import com.example.visionary.models.PhotoViewModel
 
 
 @Composable
 fun NavScreen(modifier: Modifier = Modifier) {
+
+    val viewModel = viewModel<PhotoViewModel>()
 
     // List of navigation items
     val navItemList = listOf(
@@ -43,7 +50,8 @@ fun NavScreen(modifier: Modifier = Modifier) {
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.fillMaxHeight(0.1f)
+                    .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground
             ) {
@@ -51,7 +59,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     if (index > 0) {
                         // On ajoute du séparateur entre les icônes
                         Divider(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             modifier = Modifier
                                 .padding(top = 16.dp, bottom = 16.dp)
                                 .height(70.dp)
@@ -97,14 +105,19 @@ fun NavScreen(modifier: Modifier = Modifier) {
             }
         }
     ) { innerPadding ->
-        ContentScreen(modifier = Modifier.padding(innerPadding), selectedIndex)
+        ContentScreen(modifier = Modifier.padding(innerPadding), selectedIndex, viewModel)
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int){
+fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel){
     when(selectedIndex){
         0 -> HomeScreen()
-        1 -> SaveScreen()
+        1 -> SaveScreen(
+            bitmaps = viewModel.bitmaps.value,
+            modifier = Modifier
+                .fillMaxWidth(),
+        )
     }
 }
