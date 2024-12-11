@@ -2,9 +2,8 @@
     <string name="app_name">VisionARy</string>
     <string name="save_page">Saves</string>
     <string name="scan_page">Scan</string>
-    <string name="cancel">Cancel</string>
+    <string name="cancel">Take again</string>
     <string name="action_photo">Take a photo</string>
-    <string name="retake_photo">Is the photo good enough ?</string>
-    <string name="choosing_photo">Choose photo</string>
-
+    <string name="retake_photo">Confirm this photo ?</string>
+    <string name="choosing_photo">Confirm</string>
 </resources>

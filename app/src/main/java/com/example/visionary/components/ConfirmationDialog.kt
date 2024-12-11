@@ -15,6 +15,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.visionary.R
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun ConfirmationDialog(
@@ -36,8 +39,15 @@ fun ConfirmationDialog(
                 .height(580.dp)
                 .fillMaxWidth()
                 .padding(4.dp)
-                .border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
-                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f), MaterialTheme.shapes.extraLarge),
+                .border(
+                    2.dp,
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.shapes.extraLarge
+                )
+                .background(
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+                    MaterialTheme.shapes.extraLarge
+                ),
         ) {
             Box(
                 modifier = Modifier
@@ -52,7 +62,10 @@ fun ConfirmationDialog(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(32.dp)
-                            .background(MaterialTheme.colorScheme.background, MaterialTheme.shapes.extraLarge)
+                            .background(
+                                MaterialTheme.colorScheme.background,
+                                MaterialTheme.shapes.extraLarge
+                            )
                     )
                 }
             }
@@ -70,7 +83,7 @@ fun ConfirmationDialog(
                         .fillMaxWidth()
                         .height(400.dp)
                         .padding(8.dp)
-                        .clip(RoundedCornerShape(8))
+                        //.clip(RoundedCornerShape(8))
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -84,7 +97,11 @@ fun ConfirmationDialog(
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         modifier = Modifier
-                            .border(4.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
+                            .border(
+                                4.dp,
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.shapes.extraLarge
+                            )
                     ) {
                         Text(
                             text = stringResource(id = R.string.cancel),
@@ -99,7 +116,11 @@ fun ConfirmationDialog(
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         modifier = Modifier
-                            .border(4.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraLarge)
+                            .border(
+                                4.dp,
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.shapes.extraLarge
+                            )
                     ) {
                         Text(
                             text = stringResource(id = R.string.choosing_photo),
@@ -113,3 +134,4 @@ fun ConfirmationDialog(
         }
     }
 }
+

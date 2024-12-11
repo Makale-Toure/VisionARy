@@ -78,4 +78,7 @@ dependencies {
     implementation(libs.androidx.camera.extensions)
     // Entity extraction
     implementation(libs.entity.extraction)
+
+    implementation(libs.accompanist.systemuicontroller.v0301)
+
 }

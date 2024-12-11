@@ -1,5 +1,6 @@
 [versions]
 accompanistSystemuicontroller = "1.0.0-alpha03"
+accompanistSystemuicontrollerVersion = "0.30.1"
 agp = "8.4.1"
 cameraCore = "1.4.0"
 cameraViewVersion = "1.0.0-alpha31"
@@ -18,6 +19,7 @@ textRecognition = "16.0.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
+accompanist-systemuicontroller-v0301 = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
 androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "cameraViewVersion" }
