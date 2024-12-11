@@ -51,8 +51,15 @@ import com.example.visionary.models.PhotoViewModel
 fun HomeScreen() {
     // Composable function to display the "Main screen"
     val context = LocalContext.current
-
     val scope = rememberCoroutineScope()
+    // Last Photo Taken bitmap to display it
+    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    // Boolean to show the confirmation dialog to confirm the photo
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    // Create the ViewModel
+    val viewModel = viewModel<PhotoViewModel>()
+    // Get the list of bitmaps from the ViewModel
+    val bitmaps by viewModel.bitmaps.collectAsState()
 
     // Create and remember the Camera controller
     val imageCaptureController = remember {
@@ -62,11 +69,6 @@ fun HomeScreen() {
             )
         }
     }
-
-    // Create the ViewModel
-    val viewModel = viewModel<PhotoViewModel>()
-
-    val bitmaps by viewModel.bitmaps.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         // CAlling Composable "CameraPreview" to display the camera preview in the app
@@ -102,7 +104,6 @@ fun HomeScreen() {
                     onPhotoTaken = viewModel::onPhotoTaken,
                 )
                 vibratePhoto(context)
-                //vibrateCancel(context)
 
             },
             modifier = Modifier
@@ -186,11 +187,20 @@ private fun takePhoto(
 // Function test vibrate
 fun vibrate(context: Context){
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-    vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100), -1))
+    val timings: LongArray = longArrayOf(0,100,50, 250)
+    val repeatIndex = -1 // Do not repeat.
+    vibrator?.vibrate(VibrationEffect.createWaveform(timings, repeatIndex))
 }
 
 // Function to vibrate the phone (Haptic feedback)
 fun vibratePhoto(context: Context){
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+}
+
+fun vibrateCancel(context: Context){
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    val timings: LongArray = longArrayOf(0,100,50, 250)
+    val repeatIndex = -1 // Do not repeat.
+    vibrator?.vibrate(VibrationEffect.createWaveform(timings, repeatIndex))
 }
