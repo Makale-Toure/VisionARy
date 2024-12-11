@@ -146,8 +146,12 @@ fun HomeScreen() {
                 onConfirm = {
                     viewModel.onPhotoTaken(capturedBitmap!!)
                     showConfirmationDialog = false
+                    viewModel.extractTextFromImage(capturedBitmap!!) { text ->
+                        // Ajouter du texte extrait à la liste ou afficher dans l'UI
+                        Log.d("HomeScreen", "Texte extrait: $text")
+                    }
                     capturedBitmap = null
-                },
+                            },
                 onCancel = {
                     showConfirmationDialog = false
                     capturedBitmap = null

@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.visionary.R
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun ConfirmationDialog(
@@ -110,7 +109,9 @@ fun ConfirmationDialog(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
-                        onClick = onConfirm,
+                        onClick = {
+                            onConfirm()
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.background,
                             contentColor = MaterialTheme.colorScheme.onBackground
