@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.MainActivity
 import com.example.visionary.R
+import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
 
 @Composable
@@ -99,11 +100,13 @@ fun HomeScreen() {
             onClick = {
                 // Code pour l'action du bouton
                 takePhoto(
-                    context = context,
-                    imageCaptureController,
-                    onPhotoTaken = viewModel::onPhotoTaken,
-                )
-                vibratePhoto(context)
+                    context,
+                    controller = imageCaptureController
+                ) { bitmap ->
+                    capturedBitmap = bitmap
+                    showConfirmationDialog = true
+                    vibratePhoto(context)
+                }
 
             },
             modifier = Modifier
@@ -134,6 +137,22 @@ fun HomeScreen() {
                     color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
                 )
             }
+        }
+
+        // Afficher le Dialog de confirmation si nécessaire
+        if (showConfirmationDialog && capturedBitmap != null) {
+            ConfirmationDialog(
+                bitmap = capturedBitmap!!,
+                onConfirm = {
+                    viewModel.onPhotoTaken(capturedBitmap!!)
+                    showConfirmationDialog = false
+                    capturedBitmap = null
+                },
+                onCancel = {
+                    showConfirmationDialog = false
+                    capturedBitmap = null
+                }
+            )
         }
     }
 }
