@@ -52,8 +52,8 @@ val Typography = Typography(
     titleMedium = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
+        fontSize = 24.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp
     ),
     // Medium Label
