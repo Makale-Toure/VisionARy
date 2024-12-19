@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
-                // Call the NavScreen composable function
+                // Call the MainScreen composable function
                 NavScreen()
             }
         }

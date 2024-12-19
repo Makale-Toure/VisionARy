@@ -1,8 +1,10 @@
 [versions]
 accompanistSystemuicontroller = "1.0.0-alpha03"
+accompanistSystemuicontrollerVersion = "0.30.1"
 agp = "8.4.1"
 cameraCore = "1.4.0"
 cameraViewVersion = "1.0.0-alpha31"
+entityExtraction = "16.0.0-beta5"
 kotlin = "1.9.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -17,6 +19,7 @@ textRecognition = "16.0.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
+accompanist-systemuicontroller-v0301 = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
 androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "cameraViewVersion" }
@@ -25,6 +28,7 @@ androidx-camera-view-v100alpha31 = { module = "androidx.camera:camera-view", ver
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+entity-extraction = { module = "com.google.mlkit:entity-extraction", version.ref = "entityExtraction" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

@@ -45,14 +45,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.MainActivity
 import com.example.visionary.R
+import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
 
 @Composable
 fun HomeScreen() {
     // Composable function to display the "Main screen"
     val context = LocalContext.current
-
     val scope = rememberCoroutineScope()
+    // Last Photo Taken bitmap to display it
+    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    // Boolean to show the confirmation dialog to confirm the photo
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    // Create the ViewModel
+    val viewModel = viewModel<PhotoViewModel>()
+    // Get the list of bitmaps from the ViewModel
+    val bitmaps by viewModel.bitmaps.collectAsState()
 
     // Create and remember the Camera controller
     val imageCaptureController = remember {
@@ -62,11 +70,6 @@ fun HomeScreen() {
             )
         }
     }
-
-    // Create the ViewModel
-    val viewModel = viewModel<PhotoViewModel>()
-
-    val bitmaps by viewModel.bitmaps.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Calling Composable "CameraPreview" to display the camera preview in the app
@@ -97,12 +100,13 @@ fun HomeScreen() {
             onClick = {
                 // Code pour l'action du bouton
                 takePhoto(
-                    context = context,
-                    imageCaptureController,
-                    onPhotoTaken = viewModel::onPhotoTaken,
-                )
-                vibratePhoto(context)
-                //vibrateCancel(context)
+                    context,
+                    controller = imageCaptureController
+                ) { bitmap ->
+                    capturedBitmap = bitmap
+                    showConfirmationDialog = true
+                    vibratePhoto(context)
+                }
 
             },
             modifier = Modifier
@@ -133,6 +137,26 @@ fun HomeScreen() {
                     color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
                 )
             }
+        }
+
+        // Afficher le Dialog de confirmation si nécessaire
+        if (showConfirmationDialog && capturedBitmap != null) {
+            ConfirmationDialog(
+                bitmap = capturedBitmap!!,
+                onConfirm = {
+                    viewModel.onPhotoTaken(capturedBitmap!!)
+                    showConfirmationDialog = false
+                    viewModel.extractTextFromImage(capturedBitmap!!) { text ->
+                        // Ajouter du texte extrait à la liste ou afficher dans l'UI
+                        Log.d("HomeScreen", "Texte extrait: $text")
+                    }
+                    capturedBitmap = null
+                            },
+                onCancel = {
+                    showConfirmationDialog = false
+                    capturedBitmap = null
+                }
+            )
         }
     }
 }
@@ -186,11 +210,20 @@ private fun takePhoto(
 // Function test vibrate
 fun vibrate(context: Context){
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-    vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100), -1))
+    val timings: LongArray = longArrayOf(0,100,50, 250)
+    val repeatIndex = -1 // Do not repeat.
+    vibrator?.vibrate(VibrationEffect.createWaveform(timings, repeatIndex))
 }
 
 // Function to vibrate the phone (Haptic feedback)
 fun vibratePhoto(context: Context){
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+}
+
+fun vibrateCancel(context: Context){
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    val timings: LongArray = longArrayOf(0,100,50, 250)
+    val repeatIndex = -1 // Do not repeat.
+    vibrator?.vibrate(VibrationEffect.createWaveform(timings, repeatIndex))
 }

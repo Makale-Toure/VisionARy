@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,9 +46,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.example.visionary.R
 
 @Composable
 fun SaveScreen(
@@ -65,7 +68,10 @@ fun SaveScreen(
                 .offset(y = (100).dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("There are no photos yet")
+            Text(
+                "There are no photos yet",
+                modifier = Modifier.padding(16.dp),//
+            )
         }
     } else {
         Box (modifier = Modifier.fillMaxSize()) {
@@ -77,13 +83,13 @@ fun SaveScreen(
             ) {
                 Text(
                     "Saves",
-                    style = MaterialTheme.typography.displayLarge,
-                    modifier = Modifier.padding(16.dp)
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
 
                 Divider(
                     modifier = Modifier
-                        .padding(horizontal = 20.dp),
+                        .padding(horizontal = 16.dp),
                     color = MaterialTheme.colorScheme.primary,
                     thickness = 3.dp
                 )
@@ -91,11 +97,11 @@ fun SaveScreen(
 
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalItemSpacing = 16.dp,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalItemSpacing = 8.dp,
                 userScrollEnabled = true,
                 contentPadding = PaddingValues(
-                    top = (16+64+16+16+16).dp,
+                    top = (64+8).dp,
                     bottom = 16.dp + navbarHeight,
                     start = 16.dp,
                     end = 16.dp
@@ -107,8 +113,8 @@ fun SaveScreen(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(300.dp)
-                            .clip(RoundedCornerShape(24.dp))
+                            .size(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
                             .clickable { selectedBitmap = bitmap },
                         contentScale = ContentScale.Crop
                     )
@@ -121,19 +127,20 @@ fun SaveScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .padding(top = (0.025f * LocalConfiguration.current.screenHeightDp).dp)
+                        .background(Color.Black.copy(alpha = 0.85f))
+                        .padding(top = (0.05f * LocalConfiguration.current.screenHeightDp).dp, start = 8.dp, end = 8.dp, bottom = 100.dp)
                         .clickable { selectedBitmap = null }
-                        .zIndex(2f),
+                        .zIndex(2f)
+                        .clip(RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.TopCenter
                 ){
                     Column(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(20.dp)
-                            .width(700.dp)
-                            .height(1100.dp),
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
                         horizontalAlignment = Alignment.CenterHorizontally
 
                     ) {
@@ -146,38 +153,43 @@ fun SaveScreen(
                             IconButton(onClick = { selectedBitmap = null }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Close",
-                                    Modifier.size(40.dp),
+                                    contentDescription = stringResource(id = R.string.cancel), // Close
+                                    Modifier.size(32.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.background,
+                                            MaterialTheme.shapes.extraLarge
+                                        ),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
+
                         }
 
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "Image Title",
-                                style = MaterialTheme.typography.titleLarge.copy(
+                                "Image Title", // string
+                                style = MaterialTheme.typography.titleMedium.copy(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             )
+
                         }
 
-
-                        Spacer(modifier = Modifier.height(50.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         // Display the image preview
                         Image(
                             bitmap = selectedBitmap!!.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(600.dp)
-                                .clip(RoundedCornerShape(16.dp)),
+                                .size(325.dp)
+                                .clip(RoundedCornerShape(4.dp)),
                             contentScale = ContentScale.Crop
                         )
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -231,39 +243,47 @@ fun SaveScreen(
 //                            }
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
-
                         // Information section
-                        Text("Informations", style = MaterialTheme.typography.titleMedium)
+                        Text("Informations", style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                        )
 
-                        Spacer(modifier = Modifier.height(15.dp))
+                        Divider(
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            thickness = 1.dp
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Column(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 "\uD83D\uDCDE Phone number: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 12.dp)
                             )
-                            Spacer(modifier = Modifier.height(20.dp))
                             Text(
                                 "\uD83D\uDCCD Place: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 12.dp)
                             )
-                            Spacer(modifier = Modifier.height(20.dp))
                             Text(
                                 "✉️ Mail: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 12.dp)
                             )
-                            Spacer(modifier = Modifier.height(20.dp))
                             Text(
                                 "🔗 Link: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 12.dp)
                             )
-                            Spacer(modifier = Modifier.height(20.dp))
                             Text(
                                 "📅 Date: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 12.dp)
                             )
                         }
                     }
