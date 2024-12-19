@@ -69,7 +69,7 @@ fun HomeScreen() {
     val bitmaps by viewModel.bitmaps.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // CAlling Composable "CameraPreview" to display the camera preview in the app
+        // Calling Composable "CameraPreview" to display the camera preview in the app
         CameraPreview(
             controller = imageCaptureController,
             modifier = Modifier.fillMaxSize() // Remplir l'écran
