@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
@@ -50,8 +51,14 @@ fun NavScreen(modifier: Modifier = Modifier) {
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                modifier = Modifier.fillMaxHeight(0.1f)
-                    .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
+                modifier = Modifier
+                    .fillMaxHeight(0.1f)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp)
+                    )
+                    .padding(top = 1.dp),
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground
             ) {
@@ -86,6 +93,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                             Text(
                                 text = navItem.label,
                                 style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = if (selectedIndex == index) FontWeight.ExtraBold else FontWeight.Normal,
                                     color = if (selectedIndex == index)
                                         MaterialTheme.colorScheme.primary
                                     else
