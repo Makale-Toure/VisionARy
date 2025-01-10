@@ -60,7 +60,7 @@ fun HomeScreen() {
     // Create the ViewModel
     val viewModel = viewModel<PhotoViewModel>()
     // Get the list of bitmaps from the ViewModel
-    val bitmaps by viewModel.bitmaps.collectAsState()
+    val savedImages by viewModel.savedImages.collectAsState()
 
     // Create and remember the Camera controller
     val imageCaptureController = remember {
@@ -80,10 +80,10 @@ fun HomeScreen() {
 
 
         LazyColumn {
-            items(bitmaps) { bitmap ->
+            items(savedImages) { savedImage ->
                 var extractedText by remember { mutableStateOf("") }
-                LaunchedEffect(bitmaps) {
-                    viewModel.extractTextFromImage(bitmap) { text ->
+                LaunchedEffect(savedImages) {
+                    viewModel.extractTextFromImage(savedImage.bitmap) { text ->
                         extractedText = text
                     }
                 }
@@ -144,7 +144,7 @@ fun HomeScreen() {
             ConfirmationDialog(
                 bitmap = capturedBitmap!!,
                 onConfirm = {
-                    viewModel.onPhotoTaken(capturedBitmap!!)
+                    viewModel.onPhotoTaken(context, capturedBitmap!!)
                     showConfirmationDialog = false
                     viewModel.extractTextFromImage(capturedBitmap!!) { text ->
                         // Ajouter du texte extrait à la liste ou afficher dans l'UI
@@ -191,8 +191,10 @@ private fun takePhoto(
                     matrix,                 // Matrix
                     true                // Filter to smooth the edges of the rotated image
                 )
+
                 // Log the info
                 Log.i("CameraX", "Photo taken successfully")
+
                 // Call the callback function with the rotated bitmap
                 onPhotoTaken(bitmap)
             }

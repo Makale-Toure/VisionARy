@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -69,14 +70,16 @@ class MainActivity : ComponentActivity() {
         }
 
 
-        // Check if the required permissions are granted by the user
+        // Check if the required camera permissions are granted
         if (!hasRequiredPermissions()) {
-            // Log the info
-            Log.i("CameraX", "Requesting permissions")
-            // Request the permissions if they are not granted yet
-            ActivityCompat.requestPermissions(
-                this, CAMERAX_PERMISSIONS, 0
-            )
+            Log.i("CameraX", "Requesting camera permissions")
+            ActivityCompat.requestPermissions(this, CAMERAX_PERMISSIONS, 0)
+        }
+
+        // Check if the required storage permissions are granted
+        if (!hasStoragePermissions()) {
+            Log.i("CameraX", "Requesting storage permissions")
+            ActivityCompat.requestPermissions(this, STORAGE_PERMISSIONS, 1)
         }
 
         // Display the content of the app
@@ -99,11 +102,25 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun hasStoragePermissions(): Boolean {
+        return STORAGE_PERMISSIONS.all {
+            ContextCompat.checkSelfPermission(
+                applicationContext,
+                it
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
     // Request the required permissions
     companion object {
         private val CAMERAX_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA
         )
+        private val STORAGE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
     }
 
 }

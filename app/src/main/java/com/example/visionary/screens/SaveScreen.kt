@@ -51,18 +51,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.visionary.R
+import com.example.visionary.models.SavedImage
 
 @Composable
 fun SaveScreen(
-    bitmaps: List<Bitmap>,
+    savedImages: List<SavedImage>,
     modifier: Modifier = Modifier,
+    onDeleteImage: (String) -> Unit
 ) {
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp // Screen total height
     val navbarHeight = screenHeight * 0.1f
 
-    var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    if(bitmaps.isEmpty()) {
+    var selectedImage by remember { mutableStateOf<SavedImage?>(null) }
+
+    if(savedImages.isEmpty()) {
         Box(
             modifier = modifier
                 .offset(y = (100).dp),
@@ -108,14 +111,14 @@ fun SaveScreen(
                 ),
                 modifier = modifier //.size(width = 800.dp, height = 1200.dp)
             ) {
-                items(bitmaps) { bitmap ->
+                items(savedImages) { savedImage ->
                     Image(
-                        bitmap = bitmap.asImageBitmap(),
+                        bitmap = savedImage.bitmap.asImageBitmap(),
                         contentDescription = null,
                         modifier = Modifier
                             .size(200.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable { selectedBitmap = bitmap },
+                            .clickable { selectedImage = savedImage },
                         contentScale = ContentScale.Crop
                     )
 
@@ -123,13 +126,13 @@ fun SaveScreen(
             }
 
             // Display a card preview
-            if (selectedBitmap != null) {
+            if (selectedImage != null) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.85f))
                         .padding(top = (0.05f * LocalConfiguration.current.screenHeightDp).dp, start = 8.dp, end = 8.dp, bottom = 100.dp)
-                        .clickable { selectedBitmap = null }
+                        .clickable {  selectedImage = null }
                         .zIndex(2f)
                         .clip(RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.TopCenter
@@ -150,7 +153,7 @@ fun SaveScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ){
-                            IconButton(onClick = { selectedBitmap = null }) {
+                            IconButton(onClick = { selectedImage = null }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = stringResource(id = R.string.cancel), // Close
@@ -181,7 +184,7 @@ fun SaveScreen(
 
                         // Display the image preview
                         Image(
-                            bitmap = selectedBitmap!!.asImageBitmap(),
+                            bitmap = selectedImage!!.bitmap.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(325.dp)
@@ -197,7 +200,8 @@ fun SaveScreen(
                         ) {
                             Button(
                                 onClick = {
-                                    bitmaps.drop(bitmaps.indexOf(selectedBitmap))
+                                    onDeleteImage(selectedImage!!.id) // Appeler la fonction de suppression
+                                    selectedImage = null // Fermer la preview
                                 },
                                 colors =  ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
