@@ -1,7 +1,16 @@
 package com.example.visionary.models
 
+import android.app.Application
+import android.content.ContentValues
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.nl.entityextraction.Entity
@@ -16,20 +25,42 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.util.UUID
 
-class PhotoViewModel : ViewModel() {
-    // Variable to save a list of captured bitmaps
-    private val _bitmaps = MutableStateFlow<List<Bitmap>>(emptyList())
-    val bitmaps = _bitmaps.asStateFlow()
-    // Function to add the bitmap to the list of bitmaps each time a photo is taken
-    // To-Do (only when the user confirm the photo taken)
-    fun onPhotoTaken(bitmap: Bitmap) {
+data class SavedImage (
+    val id: String, // Identifiant unique
+    val bitmap: Bitmap
+)
+
+class PhotoViewModel(application: Application) : AndroidViewModel(application) {
+    private val _savedImages = MutableStateFlow<List<SavedImage>>(emptyList())
+    val savedImages = _savedImages.asStateFlow()
+
+    init {
         viewModelScope.launch {
-            // Check if the bitmap has a valid width and height (Valid photo)
+            val context = getApplication<Application>().applicationContext
+            _savedImages.value = loadSavedImages(context)
+        }
+    }
+
+    fun onPhotoTaken(context: Context, bitmap: Bitmap) {
+        viewModelScope.launch {
             if (bitmap.width > 0 && bitmap.height > 0) {
-                _bitmaps.value += bitmap
+                val filename = "photo_${System.currentTimeMillis()}.jpg"
+                val file = saveBitmapToAppStorage(context, bitmap, filename)
+                if (file != null) {
+                    val newImage = SavedImage(
+                        id = file.nameWithoutExtension, // Générer un identifiant unique
+                        bitmap = bitmap
+                    )
+                    _savedImages.value += newImage
+                } else {
+                    Log.e("PhotoViewModel", "Failed to save bitmap")
+                }
             } else {
-                // Log the error
                 Log.e("PhotoViewModel", "Invalid bitmap")
             }
         }
@@ -154,9 +185,60 @@ class PhotoViewModel : ViewModel() {
         }
     }
 
+    private fun saveBitmapToAppStorage(context: Context, bitmap: Bitmap, filename: String): File? {
+        val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
+        if (!imageFolder.exists()) {
+            imageFolder.mkdirs()
+        }
 
+        val file = File(imageFolder, filename)
+        return try {
+            FileOutputStream(file).use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            }
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 
+    private fun loadSavedImages(context: Context): List<SavedImage> {
+        val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
+        return if (imageFolder.exists() && imageFolder.isDirectory) {
+            imageFolder.listFiles()?.mapNotNull { file ->
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                if (bitmap != null) {
+                    SavedImage(
+                        id = file.nameWithoutExtension, // Utiliser le nom du fichier comme identifiant
+                        bitmap = bitmap
+                    )
+                } else {
+                    null
+                }
+            } ?: emptyList()
+        } else {
+            emptyList()
+        }
+    }
 
+    fun deleteImage(context: Context, imageId: String) {
+        viewModelScope.launch {
+            val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
+            if (imageFolder.exists() && imageFolder.isDirectory) {
+                val fileToDelete = imageFolder.listFiles()?.find { file ->
+                    file.nameWithoutExtension == imageId
+                }
 
+                if (fileToDelete != null && fileToDelete.delete()) {
+                    // Mettre à jour la liste des images
+                    _savedImages.value = _savedImages.value.filter { it.id != imageId }
+                    Log.d("PhotoViewModel", "Image deleted: ${fileToDelete.name}")
+                } else {
+                    Log.e("PhotoViewModel", "Failed to delete image")
+                }
+            }
+        }
+    }
 
 }

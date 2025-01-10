@@ -14,8 +14,8 @@ fun CameraPreview(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     AndroidView(
-        factory = {
-            PreviewView(it).apply {
+        factory = { context ->
+            PreviewView(context).apply {
                 this.controller = controller
                 controller.bindToLifecycle(lifecycleOwner)
             }

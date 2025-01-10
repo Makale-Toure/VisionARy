@@ -25,11 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.rememberNavController
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
 import com.example.visionary.models.PhotoViewModel
-
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun NavScreen(modifier: Modifier = Modifier) {
@@ -112,12 +111,16 @@ fun NavScreen(modifier: Modifier = Modifier) {
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel){
+    val context = LocalContext.current
+
     when(selectedIndex){
         0 -> HomeScreen()
         1 -> SaveScreen(
-            bitmaps = viewModel.bitmaps.value,
-            modifier = Modifier
-                .fillMaxWidth(),
+            savedImages = viewModel.savedImages.value,
+            modifier = Modifier.fillMaxWidth(),
+            onDeleteImage = { imageId ->
+                viewModel.deleteImage(context, imageId)
+            }
         )
     }
 }
