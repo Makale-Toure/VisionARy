@@ -5,11 +5,18 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.YuvImage
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.OptIn
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageProxy
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,6 +32,7 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -38,6 +46,9 @@ data class SavedImage (
 class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     private val _savedImages = MutableStateFlow<List<SavedImage>>(emptyList())
     val savedImages = _savedImages.asStateFlow()
+
+    private val _detectedText = MutableStateFlow("")
+    val detectedText = _detectedText.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -239,6 +250,45 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+    }
+
+    @OptIn(ExperimentalGetImage::class)
+    fun ImageProxy.toBitmap(): Bitmap {
+        val image = this.image ?: throw IllegalStateException("Image is null")
+        val yBuffer = image.planes[0].buffer
+        val uBuffer = image.planes[1].buffer
+        val vBuffer = image.planes[2].buffer
+
+        val ySize = yBuffer.remaining()
+        val uSize = uBuffer.remaining()
+        val vSize = vBuffer.remaining()
+
+        val nv21 = ByteArray(ySize + uSize + vSize)
+        yBuffer.get(nv21, 0, ySize)
+        vBuffer.get(nv21, ySize, vSize)
+        uBuffer.get(nv21, ySize + vSize, uSize)
+
+        val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
+        val out = ByteArrayOutputStream()
+        yuvImage.compressToJpeg(Rect(0, 0, this.width, this.height), 100, out)
+        val imageBytes = out.toByteArray()
+
+        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+        // Appliquer une rotation si nécessaire
+        val matrix = Matrix().apply {
+            postRotate(this@toBitmap.imageInfo.rotationDegrees.toFloat())
+        }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    fun analyzeImage(imageProxy: ImageProxy) {
+        val bitmap = imageProxy.toBitmap() // Convertir ImageProxy en Bitmap
+        extractTextFromImage(bitmap) { extractedText ->
+            // Mettre à jour le texte détecté
+            _detectedText.value = extractedText
+        }
+        imageProxy.close() // Fermer l'ImageProxy après utilisation
     }
 
 }

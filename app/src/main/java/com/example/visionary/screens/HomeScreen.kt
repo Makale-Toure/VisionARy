@@ -3,7 +3,6 @@ package com.example.visionary.screens
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -28,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,17 +41,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.Camera.CameraPreview
-import com.example.visionary.MainActivity
 import com.example.visionary.R
 import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onNavigateToAR: () -> Unit) {
     // Composable function to display the "Main screen"
     val context = LocalContext.current
+    //val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
     val scope = rememberCoroutineScope()
     // Last Photo Taken bitmap to display it
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -62,7 +64,7 @@ fun HomeScreen() {
     // Get the list of bitmaps from the ViewModel
     val savedImages by viewModel.savedImages.collectAsState()
 
-    // Create and remember the Camera controller
+    // Create and configure the Camera controller
     val imageCaptureController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(
@@ -71,13 +73,22 @@ fun HomeScreen() {
         }
     }
 
+    /*LaunchedEffect(lifecycleOwner) {
+        imageCaptureController.bindToLifecycle(lifecycleOwner)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            imageCaptureController.unbind()
+        }
+    }*/
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Calling Composable "CameraPreview" to display the camera preview in the app
         CameraPreview(
             controller = imageCaptureController,
-            modifier = Modifier.fillMaxSize() // Remplir l'écran
+            modifier = Modifier.fillMaxSize()
         )
-
 
         LazyColumn {
             items(savedImages) { savedImage ->
@@ -113,7 +124,6 @@ fun HomeScreen() {
                 .align(Alignment.BottomCenter) // Aligner le bouton en bas à droite
                 .width(200.dp) // Largeur du bouton
                 .height(56.dp) // Hauteur du bouton
-                .offset(y = (-100).dp)
                 .padding(bottom = 16.dp)
                 .border(
                     4.dp,
@@ -137,6 +147,35 @@ fun HomeScreen() {
                     color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
                 )
             }
+        }
+        // Bouton pour aller à la page AR
+        FloatingActionButton(
+            onClick = {
+                imageCaptureController.unbind()
+                onNavigateToAR()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd) // Aligner le bouton en bas à droite
+                .width(60.dp) // Largeur du bouton
+                .height(60.dp) // Hauteur du bouton
+                .padding(bottom = 16.dp, end = 16.dp)
+                .border(
+                    4.dp,
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.shapes.extraLarge
+                ), // Marge du bouton
+            containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
+            contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(R.drawable.ar_icon),
+                    contentDescription = "Aller à la page AR",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
         }
 
         // Afficher le Dialog de confirmation si nécessaire

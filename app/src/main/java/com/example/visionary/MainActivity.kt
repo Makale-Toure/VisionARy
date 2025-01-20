@@ -52,6 +52,7 @@ import com.example.visionary.ui.theme.VisionARyTheme
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.models.PhotoViewModel
 import com.example.visionary.screens.NavScreen
+import com.example.visionary.screens.NavScreen2
 
 
 class MainActivity : ComponentActivity() {
@@ -87,7 +88,7 @@ class MainActivity : ComponentActivity() {
             // A surface container using the 'background' color from our theme
             VisionARyTheme {
                 // Call the MainScreen composable function
-                NavScreen()
+                NavScreen2()
             }
         }
     }

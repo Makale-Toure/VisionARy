@@ -78,5 +78,6 @@ dependencies {
     implementation(libs.androidx.camera.extensions)
     // Entity extraction
     implementation(libs.entity.extraction)
-
+    // AR
+    implementation(libs.core)
 }

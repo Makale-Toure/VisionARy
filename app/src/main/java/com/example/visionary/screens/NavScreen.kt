@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -120,9 +121,15 @@ fun NavScreen(modifier: Modifier = Modifier) {
 @Composable
 fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel){
     val context = LocalContext.current
+    var showARScreen by remember { mutableStateOf(false) }
+
 
     when(selectedIndex){
-        0 -> HomeScreen()
+        0 -> HomeScreen(
+            onNavigateToAR = {
+                showARScreen = true
+            },
+        )
         1 -> SaveScreen(
             savedImages = viewModel.savedImages.value,
             modifier = Modifier.fillMaxWidth(),
@@ -131,4 +138,11 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel:
             }
         )
     }
+    /*if(showARScreen){
+        ARScreen(
+            onBack = {
+                showARScreen = false
+            }
+        )
+    }*/
 }
