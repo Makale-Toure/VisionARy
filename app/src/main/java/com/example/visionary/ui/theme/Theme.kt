@@ -17,7 +17,8 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Blue,
     background = Charcoal,
     onBackground = White,
-    error = Red
+    error = Red,
+    outline = Green
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -27,7 +28,9 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Blue,
     background = White,
     onBackground = Black,
-    error = Red
+    error = Red,
+    outline = Green
+
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
