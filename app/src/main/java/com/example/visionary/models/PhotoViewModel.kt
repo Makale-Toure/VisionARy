@@ -30,6 +30,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -45,7 +46,7 @@ data class SavedImage (
 
 class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     private val _savedImages = MutableStateFlow<List<SavedImage>>(emptyList())
-    val savedImages = _savedImages.asStateFlow()
+    val savedImages: StateFlow<List<SavedImage>> = _savedImages.asStateFlow()
 
     private val _detectedText = MutableStateFlow("")
     val detectedText = _detectedText.asStateFlow()
@@ -53,6 +54,12 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     init {
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
+            _savedImages.value = loadSavedImages(context)
+        }
+    }
+
+    fun reloadSavedImages(context: Context) {
+        viewModelScope.launch {
             _savedImages.value = loadSavedImages(context)
         }
     }
