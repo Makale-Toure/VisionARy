@@ -49,7 +49,9 @@ import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
 
 @Composable
-fun HomeScreen(onNavigateToAR: () -> Unit) {
+fun HomeScreen(
+    onNavigateToAR: () -> Unit
+) {
     // Composable function to display the "Main screen"
     val context = LocalContext.current
     //val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -175,6 +177,7 @@ fun HomeScreen(onNavigateToAR: () -> Unit) {
                 onConfirm = {
                     viewModel.onPhotoTaken(context, capturedBitmap!!)
                     showConfirmationDialog = false
+                    viewModel.reloadSavedImages(context) // Recharger les images après la prise de photo
                     viewModel.extractTextFromImage(capturedBitmap!!) { text ->
                         // Ajouter du texte extrait à la liste ou afficher dans l'UI
                         Log.d("HomeScreen", "Texte extrait: $text")

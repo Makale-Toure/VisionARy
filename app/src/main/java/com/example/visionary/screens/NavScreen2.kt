@@ -18,6 +18,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -65,7 +68,6 @@ fun NavScreen2(modifier: Modifier = Modifier) {
 
             composable("save") {
                 SaveScreen(
-                    savedImages = viewModel.savedImages.value,
                     modifier = Modifier.fillMaxWidth(),
                     onDeleteImage = { imageId ->
                         viewModel.deleteImage(context, imageId)
@@ -157,6 +159,35 @@ fun BottomNavbar(navController: NavController) {
             )
         }
     }
+}
+
+@SuppressLint("StateFlowValueCalledInComposition")
+@Composable
+fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel){
+    val context = LocalContext.current
+    var showARScreen by remember { mutableStateOf(false) }
+
+
+    when(selectedIndex){
+        0 -> HomeScreen(
+            onNavigateToAR = {
+                showARScreen = true
+            },
+        )
+        1 -> SaveScreen(
+            modifier = Modifier.fillMaxWidth(),
+            onDeleteImage = { imageId ->
+                viewModel.deleteImage(context, imageId)
+            }
+        )
+    }
+    /*if(showARScreen){
+        ARScreen(
+            onBack = {
+                showARScreen = false
+            }
+        )
+    }*/
 }
 
 @Composable

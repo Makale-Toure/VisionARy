@@ -34,6 +34,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,26 +48,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.R
+import com.example.visionary.models.PhotoViewModel
 import com.example.visionary.models.SavedImage
 
 @Composable
 fun SaveScreen(
-    savedImages: List<SavedImage>,
     modifier: Modifier = Modifier,
-    onDeleteImage: (String) -> Unit
+    onDeleteImage: (String) -> Unit,
 ) {
-
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp // Screen total height
     val navbarHeight = screenHeight * 0.1f
-
     var selectedImage by remember { mutableStateOf<SavedImage?>(null) }
 
-    if(savedImages.isEmpty()) {
+    val context = LocalContext.current
+    val viewModel: PhotoViewModel = viewModel()
+
+    // Recharger les images lorsque l'utilisateur accède à cette page
+    LaunchedEffect(Unit) {
+        viewModel.reloadSavedImages(context)
+    }
+
+    val currentSavedImages by viewModel.savedImages.collectAsState()
+
+    if (currentSavedImages.isEmpty()) {
         Box(
             modifier = modifier
                 .offset(y = (100).dp),
@@ -73,11 +85,11 @@ fun SaveScreen(
         ) {
             Text(
                 "There are no photos yet",
-                modifier = Modifier.padding(16.dp),//
+                modifier = Modifier.padding(16.dp),
             )
         }
     } else {
-        Box (modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -104,14 +116,14 @@ fun SaveScreen(
                 verticalItemSpacing = 8.dp,
                 userScrollEnabled = true,
                 contentPadding = PaddingValues(
-                    top = (64+8).dp,
+                    top = (64 + 8).dp,
                     bottom = 16.dp + navbarHeight,
                     start = 16.dp,
                     end = 16.dp
                 ),
-                modifier = modifier //.size(width = 800.dp, height = 1200.dp)
+                modifier = modifier
             ) {
-                items(savedImages) { savedImage ->
+                items(currentSavedImages) { savedImage ->
                     Image(
                         bitmap = savedImage.bitmap.asImageBitmap(),
                         contentDescription = null,
@@ -121,7 +133,6 @@ fun SaveScreen(
                             .clickable { selectedImage = savedImage },
                         contentScale = ContentScale.Crop
                     )
-
                 }
             }
 
@@ -132,11 +143,11 @@ fun SaveScreen(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.85f))
                         .padding(top = (0.05f * LocalConfiguration.current.screenHeightDp).dp, start = 8.dp, end = 8.dp, bottom = 100.dp)
-                        .clickable {  selectedImage = null }
+                        .clickable { selectedImage = null }
                         .zIndex(2f)
                         .clip(RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.TopCenter
-                ){
+                ) {
                     Column(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -145,14 +156,12 @@ fun SaveScreen(
                             .fillMaxWidth()
                             .fillMaxHeight(),
                         horizontalAlignment = Alignment.CenterHorizontally
-
                     ) {
-
                         // Close button
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
-                        ){
+                        ) {
                             IconButton(onClick = { selectedImage = null }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
@@ -165,7 +174,6 @@ fun SaveScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
-
                         }
 
                         Row(
@@ -177,7 +185,6 @@ fun SaveScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             )
-
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -201,12 +208,12 @@ fun SaveScreen(
                             Button(
                                 onClick = {
                                     onDeleteImage(selectedImage!!.id) // Appeler la fonction de suppression
+                                    viewModel.reloadSavedImages(context) // Recharger les images après la suppression
                                     selectedImage = null // Fermer la preview
                                 },
-                                colors =  ButtonDefaults.buttonColors(
+                                colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
                                     contentColor = MaterialTheme.colorScheme.onSecondary,
-
                                 ),
                                 border = ButtonDefaults.outlinedButtonBorder.copy(
                                     width = 3.dp,
@@ -223,28 +230,6 @@ fun SaveScreen(
                                     fontWeight = FontWeight.Bold
                                 ))
                             }
-//                            Button(
-//                                onClick = { },
-//                                colors =  ButtonDefaults.buttonColors(
-//                                    containerColor = MaterialTheme.colorScheme.secondary,
-//                                    contentColor = MaterialTheme.colorScheme.onSecondary,
-//
-//                                    ),
-//                                border = ButtonDefaults.outlinedButtonBorder.copy(
-//                                    width = 2.dp,
-//                                    brush = Brush.verticalGradient(
-//                                        colors = listOf(
-//                                            MaterialTheme.colorScheme.primary,
-//                                            MaterialTheme.colorScheme.primary
-//                                        )
-//                                    )
-//                                )
-//                            ) {
-//                                Icon(Icons.Filled.Face, contentDescription = "VR")
-//                                Text("View in AR", style = MaterialTheme.typography.labelSmall.copy(
-//                                    fontWeight = FontWeight.Bold
-//                                ))
-//                            }
                         }
 
                         // Information section
@@ -296,4 +281,3 @@ fun SaveScreen(
         }
     }
 }
-

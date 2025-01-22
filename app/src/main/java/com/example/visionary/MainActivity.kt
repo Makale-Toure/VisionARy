@@ -34,8 +34,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.ui.theme.VisionARyTheme
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.models.PhotoViewModel
+import com.example.visionary.screens.LaunchingScreen
 import com.example.visionary.screens.NavScreen
 import com.example.visionary.screens.NavScreen2
 
@@ -85,13 +88,20 @@ class MainActivity : ComponentActivity() {
 
         // Display the content of the app
         setContent {
-            // A surface container using the 'background' color from our theme
             VisionARyTheme {
-                // Call the MainScreen composable function
-                NavScreen2()
+                var showMainScreen by remember { mutableStateOf(false) }
+
+                if (showMainScreen) {
+                    NavScreen2() // Écran principal
+                } else {
+                    LaunchingScreen {
+                        showMainScreen = true // Déclenche la navigation après l'animation
+                    }
+                }
             }
         }
     }
+
     // Check if the required permissions are granted
     // Camera permission
     private fun hasRequiredPermissions(): Boolean {

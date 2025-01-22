@@ -1,5 +1,6 @@
 package com.example.visionary.components
 
+import android.app.Activity
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,9 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.visionary.R
 
 @Composable
@@ -32,104 +37,99 @@ fun ConfirmationDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
+
     Dialog(onDismissRequest = onCancel) {
         Box(
             modifier = Modifier
-                .height(580.dp)
-                .fillMaxWidth()
-                .padding(4.dp)
-                .border(
-                    2.dp,
-                    MaterialTheme.colorScheme.primary,
-                    MaterialTheme.shapes.extraLarge
-                )
+                .width(400.dp) // Largeur réduite pour une meilleure adaptation
+                .height(550.dp)
                 .background(
-                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-                    MaterialTheme.shapes.extraLarge
-                ),
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(16.dp) // Coins arrondis
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(16.dp) // Espacement interne
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                contentAlignment = Alignment.TopEnd
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                IconButton(onClick = onCancel) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(id = R.string.cancel),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(
-                                MaterialTheme.colorScheme.background,
-                                MaterialTheme.shapes.extraLarge
-                            )
-                    )
-                }
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Titre du dialogue
                 Text(
                     text = stringResource(id = R.string.retake_photo),
-                    modifier = Modifier
-                        .padding(top = 16.dp, bottom = 8.dp, start = 24.dp),
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = 16.dp) // Espacement sous le titre
                 )
+
+                // Aperçu de la photo
                 Image(
                     bitmap = bitmap.asImageBitmap(),
                     contentDescription = "Photo Preview",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp)
-                        .padding(8.dp)
-                        //.clip(RoundedCornerShape(8))
+                        .height(400.dp) // Hauteur ajustée
+                        .clip(RoundedCornerShape(8.dp)) // Coins arrondis pour l'image
+                        .background(MaterialTheme.colorScheme.background) // Fond légèrement transparent
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
+                Spacer(modifier = Modifier.height(16.dp)) // Espacement entre l'image et les boutons
+
+                // Boutons de confirmation et d'annulation
                 Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp) // Espacement horizontal
                 ) {
-                    // Cancel Button
+                    // Bouton Annuler
                     Button(
                         onClick = onCancel,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.background,
+                            containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f),
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         modifier = Modifier
+                            .weight(1f) // Répartir l'espace entre les boutons
+                            .padding(end = 8.dp) // Espacement entre les boutons
                             .border(
-                                4.dp,
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.shapes.extraLarge
-                            )
+                                width = 4.dp, // Épaisseur de la bordure
+                                color = MaterialTheme.colorScheme.error, // Couleur de la bordure
+                                shape = MaterialTheme.shapes.extraLarge
+                            ),
                     ) {
                         Text(
                             text = stringResource(id = R.string.cancel),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.labelSmall
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Bouton Confirmer
                     Button(
-                        onClick = {
-                            onConfirm()
-                                  },
+                        onClick = onConfirm,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.background,
+                            containerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         modifier = Modifier
+                            .weight(1f) // Répartir l'espace entre les boutons
+                            .padding(start = 8.dp) // Espacement entre les boutons
                             .border(
-                                4.dp,
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.shapes.extraLarge
-                            )
+                                width = 4.dp, // Épaisseur de la bordure
+                                color = MaterialTheme.colorScheme.outline, // Couleur de la bordure
+                                shape = MaterialTheme.shapes.extraLarge
+                            ),
+                        shape = MaterialTheme.shapes.extraLarge // Coins arrondis pour le bouton
                     ) {
                         Text(
                             text = stringResource(id = R.string.choosing_photo),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.labelSmall
                         )
                     }
-
-
                 }
             }
         }

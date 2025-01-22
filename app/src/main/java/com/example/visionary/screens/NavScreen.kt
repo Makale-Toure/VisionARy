@@ -116,33 +116,3 @@ fun NavScreen(modifier: Modifier = Modifier) {
         ContentScreen(modifier = Modifier.padding(innerPadding), selectedIndex, viewModel)
     }
 }
-
-@SuppressLint("StateFlowValueCalledInComposition")
-@Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel){
-    val context = LocalContext.current
-    var showARScreen by remember { mutableStateOf(false) }
-
-
-    when(selectedIndex){
-        0 -> HomeScreen(
-            onNavigateToAR = {
-                showARScreen = true
-            },
-        )
-        1 -> SaveScreen(
-            savedImages = viewModel.savedImages.value,
-            modifier = Modifier.fillMaxWidth(),
-            onDeleteImage = { imageId ->
-                viewModel.deleteImage(context, imageId)
-            }
-        )
-    }
-    if(showARScreen){
-        ARScreen(
-            onBack = {
-                showARScreen = false
-            }
-        )
-    }
-}
