@@ -52,20 +52,12 @@ fun ARScreen(
     LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
-                viewModel.analyzeImage(imageProxy){ classifiedText ->
-                    if(classifiedText.contains("Phone number")){
-                        detectedEntity = "phone.glb"
-                    } else{
-                        detectedEntity = null
-                    }
-                }
-                imageProxy.close()
+                viewModel.analyzeImage(imageProxy)
             }
             cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context), imageAnalyzer)
         } else {
             cameraController.clearImageAnalysisAnalyzer()
             viewModel.clearDetectedText()
-            detectedEntity = null
         }
     }
 
