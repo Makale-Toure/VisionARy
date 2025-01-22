@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
@@ -38,13 +37,14 @@ fun ARScreen(
     val viewModel = viewModel<PhotoViewModel>()
 
     var isAnalyzing by remember { mutableStateOf(false) }
+    var detectedEntity by remember { mutableStateOf<String?>(null) }
 
 
     // Contrôleur de la caméra avec analyse d'image en temps réel
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(
-                CameraController.IMAGE_CAPTURE
+                CameraController.IMAGE_ANALYSIS
             )
         }
     }
@@ -52,11 +52,20 @@ fun ARScreen(
     LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
-                viewModel.analyzeImage(imageProxy)
+                viewModel.analyzeImage(imageProxy){ classifiedText ->
+                    if(classifiedText.contains("Phone number")){
+                        detectedEntity = "phone.glb"
+                    } else{
+                        detectedEntity = null
+                    }
+                }
+                imageProxy.close()
             }
             cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context), imageAnalyzer)
         } else {
             cameraController.clearImageAnalysisAnalyzer()
+            viewModel.clearDetectedText()
+            detectedEntity = null
         }
     }
 
@@ -66,13 +75,24 @@ fun ARScreen(
             modifier = Modifier.fillMaxSize()
         )
 
+        // Affiche "Hold the position" lorsque l'analyse est active
+        if (isAnalyzing) {
+            Text(
+                text = "Hold the position...",
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(16.dp)
+            )
+        }
+
         val detectedText by viewModel.detectedText.collectAsState()
         if (detectedText.isNotEmpty()) {
             Text(
                 detectedText,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
                     .padding(16.dp),
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -101,7 +121,7 @@ fun ARScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = if (isAnalyzing) R.drawable.stop_circle_24px else R.drawable.play_circle_24px),
-                    contentDescription = if (isAnalyzing) "Arrêter l'analyse" else "Démarrer l'analyse",
+                    contentDescription = if (isAnalyzing) "Stop AR" else "Display AR",
                     tint = MaterialTheme.colorScheme.onBackground // Icône en onBackground
                 )
                 Spacer(modifier = Modifier.width(8.dp))

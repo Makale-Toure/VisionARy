@@ -45,16 +45,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.ui.theme.VisionARyTheme
-import com.example.visionary.Camera.CameraPreview
-import com.example.visionary.models.PhotoViewModel
 import com.example.visionary.screens.LaunchingScreen
-import com.example.visionary.screens.NavScreen
 import com.example.visionary.screens.NavScreen2
 
 

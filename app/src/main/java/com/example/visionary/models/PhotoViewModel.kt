@@ -289,13 +289,25 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-    fun analyzeImage(imageProxy: ImageProxy) {
+    fun analyzeImage(imageProxy: ImageProxy, onEntityDetected: (String?) -> Unit) {
         val bitmap = imageProxy.toBitmap() // Convertir ImageProxy en Bitmap
         extractTextFromImage(bitmap) { extractedText ->
-            // Mettre à jour le texte détecté
-            _detectedText.value = extractedText
+            // Si aucun texte n'est détecté
+            if (extractedText.isBlank()) {
+                _detectedText.value = "No text detected."
+            } else {
+                // Extraire les entités du texte détecté
+                extractEntitiesFromText(extractedText) { classifiedText ->
+                    // Mettre à jour le texte détecté avec les entités classées
+                    _detectedText.value = classifiedText
+                }
+            }
         }
         imageProxy.close() // Fermer l'ImageProxy après utilisation
+    }
+
+    fun clearDetectedText() {
+        _detectedText.value = "" // Réinitialiser le texte
     }
 
 }
