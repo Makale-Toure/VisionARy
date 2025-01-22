@@ -138,11 +138,11 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel:
             }
         )
     }
-    /*if(showARScreen){
+    if(showARScreen){
         ARScreen(
             onBack = {
                 showARScreen = false
             }
         )
-    }*/
+    }
 }

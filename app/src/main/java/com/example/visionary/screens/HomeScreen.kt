@@ -73,16 +73,6 @@ fun HomeScreen(onNavigateToAR: () -> Unit) {
         }
     }
 
-    /*LaunchedEffect(lifecycleOwner) {
-        imageCaptureController.bindToLifecycle(lifecycleOwner)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            imageCaptureController.unbind()
-        }
-    }*/
-
     Box(modifier = Modifier.fillMaxSize()) {
         // Calling Composable "CameraPreview" to display the camera preview in the app
         CameraPreview(

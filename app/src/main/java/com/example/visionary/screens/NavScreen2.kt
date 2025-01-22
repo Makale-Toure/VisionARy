@@ -39,6 +39,7 @@ fun NavScreen2(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val viewModel = viewModel<PhotoViewModel>()
     val context = LocalContext.current
+    
 
     Scaffold (
         modifier = modifier.fillMaxSize(),

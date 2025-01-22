@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
@@ -48,7 +49,7 @@ fun ARScreen(
         }
     }
 
-    /*LaunchedEffect(isAnalyzing) {
+    LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
                 viewModel.analyzeImage(imageProxy)
@@ -57,7 +58,7 @@ fun ARScreen(
         } else {
             cameraController.clearImageAnalysisAnalyzer()
         }
-    }*/
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         CameraPreview(
