@@ -37,7 +37,6 @@ fun ARScreen(
     val viewModel = viewModel<PhotoViewModel>()
 
     var isAnalyzing by remember { mutableStateOf(false) }
-    var detectedEntity by remember { mutableStateOf<String?>(null) }
 
 
     // Contrôleur de la caméra avec analyse d'image en temps réel
