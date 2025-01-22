@@ -289,7 +289,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-    fun analyzeImage(imageProxy: ImageProxy, onEntityDetected: (String?) -> Unit) {
+    fun analyzeImage(imageProxy: ImageProxy) {
         val bitmap = imageProxy.toBitmap() // Convertir ImageProxy en Bitmap
         extractTextFromImage(bitmap) { extractedText ->
             // Si aucun texte n'est détecté

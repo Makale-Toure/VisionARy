@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
@@ -37,7 +38,6 @@ fun ARScreen(
     val viewModel = viewModel<PhotoViewModel>()
 
     var isAnalyzing by remember { mutableStateOf(false) }
-    var detectedEntity by remember { mutableStateOf<String?>(null) }
 
 
     // Contrôleur de la caméra avec analyse d'image en temps réel
@@ -52,20 +52,12 @@ fun ARScreen(
     LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
-                viewModel.analyzeImage(imageProxy){ classifiedText ->
-                    if(classifiedText.contains("Phone number")){
-                        detectedEntity = "phone.glb"
-                    } else{
-                        detectedEntity = null
-                    }
-                }
-                imageProxy.close()
+                viewModel.analyzeImage(imageProxy)
             }
             cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context), imageAnalyzer)
         } else {
             cameraController.clearImageAnalysisAnalyzer()
             viewModel.clearDetectedText()
-            detectedEntity = null
         }
     }
 

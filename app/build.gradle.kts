@@ -80,5 +80,4 @@ dependencies {
     implementation(libs.entity.extraction)
     // AR
     implementation(libs.core)
-    implementation (libs.sceneform)
 }
