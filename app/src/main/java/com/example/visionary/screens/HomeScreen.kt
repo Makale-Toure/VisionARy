@@ -3,6 +3,7 @@ package com.example.visionary.screens
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -43,14 +44,17 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
 import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
+import com.example.visionary.utils.convertBitmapToString
 
 @Composable
 fun HomeScreen(
-    onNavigateToAR: () -> Unit
+    onNavigateToAR: () -> Unit,
+    navController: NavController
 ) {
     // Composable function to display the "Main screen"
     val context = LocalContext.current
@@ -65,6 +69,8 @@ fun HomeScreen(
     val viewModel = viewModel<PhotoViewModel>()
     // Get the list of bitmaps from the ViewModel
     val savedImages by viewModel.savedImages.collectAsState()
+
+    var extractedText by remember { mutableStateOf("") }
 
     // Create and configure the Camera controller
     val imageCaptureController = remember {
@@ -81,22 +87,6 @@ fun HomeScreen(
             controller = imageCaptureController,
             modifier = Modifier.fillMaxSize()
         )
-
-        LazyColumn {
-            items(savedImages) { savedImage ->
-                var extractedText by remember { mutableStateOf("") }
-                LaunchedEffect(savedImages) {
-                    viewModel.extractTextFromImage(savedImage.bitmap) { text ->
-                        extractedText = text
-                    }
-                }
-                Text(text = extractedText,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                    )
-            }
-        }
 
         FloatingActionButton(
 
@@ -178,10 +168,22 @@ fun HomeScreen(
                     viewModel.onPhotoTaken(context, capturedBitmap!!)
                     showConfirmationDialog = false
                     viewModel.reloadSavedImages(context) // Recharger les images après la prise de photo
+
+                    // Dans la ConfirmationDialog, après avoir extrait les entités :
                     viewModel.extractTextFromImage(capturedBitmap!!) { text ->
-                        // Ajouter du texte extrait à la liste ou afficher dans l'UI
-                        Log.d("HomeScreen", "Texte extrait: $text")
+                        viewModel.extractEntitiesFromText(text) { formattedText ->
+                            // Pas de formatage ici, on passe juste le texte brut à InformationScreen
+                            val lastImage = viewModel.savedImages.value.lastOrNull()
+                            lastImage?.let {
+                                val lastSavedImageId = it.id
+                                // Naviguer vers la page InformationScreen en passant le texte brut
+                                navController.navigate(
+                                    "information/$lastSavedImageId/${formattedText.replace("\n", " ")}"
+                                )
+                            }
+                        }
                     }
+
                     capturedBitmap = null
                             },
                 onCancel = {

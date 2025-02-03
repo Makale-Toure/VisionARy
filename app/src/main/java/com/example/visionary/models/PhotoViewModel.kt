@@ -168,6 +168,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return stringBuilder.toString().trim()
     }
 
+
     fun extractRemainingText(text: String, annotations: List<EntityAnnotation>): String {
         val stringBuilder = StringBuilder()
         var currentIndex = 0

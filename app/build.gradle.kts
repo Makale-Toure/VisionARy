@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     // Text recognition
     implementation(libs.text.recognition)
+    implementation(libs.androidx.ui.test.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

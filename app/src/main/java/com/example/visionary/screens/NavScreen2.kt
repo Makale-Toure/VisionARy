@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,13 +29,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
 import com.example.visionary.models.PhotoViewModel
+import com.example.visionary.utils.convertStringToBitmap
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -42,21 +46,22 @@ fun NavScreen2(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val viewModel = viewModel<PhotoViewModel>()
     val context = LocalContext.current
-    
 
-    Scaffold (
+    Scaffold(
         modifier = modifier.fillMaxSize(),
-        bottomBar = {BottomNavbar(navController)}
-    ){ innerPadding ->
-        NavHost(navController = navController,
+        bottomBar = { BottomNavbar(navController) }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
-        ){
+        ) {
             composable("home") {
                 HomeScreen(
                     onNavigateToAR = {
                         navController.navigate("ar")
-                    }
+                    },
+                    navController = navController
                 )
             }
 
@@ -74,6 +79,23 @@ fun NavScreen2(modifier: Modifier = Modifier) {
                     }
                 )
             }
+
+            composable(
+                "information/{savedImageId}/{extractedText}",
+                arguments = listOf(
+                    navArgument("savedImageId") { type = NavType.StringType },
+                    navArgument("extractedText") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val savedImageId = backStackEntry.arguments?.getString("savedImageId")
+                val extractedText = backStackEntry.arguments?.getString("extractedText")
+                InformationScreen(
+                    navController = navController,
+                    savedImageId = savedImageId,
+                    formattedText = extractedText
+                )
+            }
+
         }
     }
 }
@@ -93,7 +115,7 @@ fun BottomNavbar(navController: NavController) {
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp)
+                shape = RoundedCornerShape(0.dp)
             )
             .padding(top = 1.dp),
         containerColor = MaterialTheme.colorScheme.background, // Couleur de fond de la barre
@@ -173,6 +195,7 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel:
             onNavigateToAR = {
                 showARScreen = true
             },
+            navController = rememberNavController()
         )
         1 -> SaveScreen(
             modifier = Modifier.fillMaxWidth(),
