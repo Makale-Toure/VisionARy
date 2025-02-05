@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.navigation.compose)
+
     // Text recognition
     implementation(libs.text.recognition)
     testImplementation(libs.junit)
@@ -76,8 +77,12 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view.v100alpha31)
     implementation(libs.androidx.camera.extensions)
+
     // Entity extraction
     implementation(libs.entity.extraction)
+
     // AR
     implementation(libs.core)
+    implementation (libs.arsceneview)
+    implementation(libs.androidx.lifecycle.runtime.ktx.v270)
 }

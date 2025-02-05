@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
 import com.example.visionary.models.PhotoViewModel
@@ -61,7 +62,10 @@ fun NavScreen2(modifier: Modifier = Modifier) {
             }
 
             composable("ar") {
-                ARScreen(
+                /*ARScreen(
+                    onBack = { navController.popBackStack() },
+                )*/
+                ARScreen2(
                     onBack = { navController.popBackStack() },
                 )
             }

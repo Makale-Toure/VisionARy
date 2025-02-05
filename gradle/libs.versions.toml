@@ -2,6 +2,7 @@
 accompanistSystemuicontroller = "1.0.0-alpha03"
 accompanistSystemuicontrollerVersion = "0.30.1"
 agp = "8.4.1"
+arsceneview = "2.2.1"
 cameraCore = "1.4.0"
 cameraViewVersion = "1.0.0-alpha31"
 core = "1.47.0"
@@ -15,6 +16,7 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2023.08.00"
 cameraView = "1.4.0"
+lifecycleRuntimeKtxVersion = "2.7.0"
 navigationCompose = "2.8.4"
 sceneform = "1.17.1"
 textRecognition = "16.0.0"
@@ -28,8 +30,10 @@ androidx-camera-extensions = { module = "androidx.camera:camera-extensions", ver
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
 androidx-camera-view-v100alpha31 = { module = "androidx.camera:camera-view", version.ref = "cameraViewVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx-v270 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+arsceneview = { module = "io.github.sceneview:arsceneview", version.ref = "arsceneview" }
 core = { module = "com.google.ar:core", version.ref = "core" }
 entity-extraction = { module = "com.google.mlkit:entity-extraction", version.ref = "entityExtraction" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

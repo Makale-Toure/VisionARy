@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
@@ -27,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
 import com.example.visionary.models.PhotoViewModel
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -39,6 +39,7 @@ fun ARScreen(
 
     var isAnalyzing by remember { mutableStateOf(false) }
 
+    var countdown by remember { mutableStateOf(5) }
 
     // Contrôleur de la caméra avec analyse d'image en temps réel
     val cameraController = remember {
@@ -51,11 +52,19 @@ fun ARScreen(
 
     LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
+            countdown = 5
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
                 viewModel.analyzeImage(imageProxy)
             }
             cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context), imageAnalyzer)
-        } else {
+
+            while (countdown > 0) {
+                delay(1000)
+                countdown--
+            }
+
+            // Arrêter l'analyse après le compte à rebours
+            isAnalyzing = false
             cameraController.clearImageAnalysisAnalyzer()
             viewModel.clearDetectedText()
         }
@@ -67,11 +76,10 @@ fun ARScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Affiche "Hold the position" lorsque l'analyse est active
         if (isAnalyzing) {
             Text(
-                text = "Hold the position...",
-                color = MaterialTheme.colorScheme.secondary,
+                text = "Display AR in $countdown ...",
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -90,11 +98,12 @@ fun ARScreen(
             )
         }
 
-
         // Bouton pour prendre une photo
         FloatingActionButton(
             onClick = {
-                isAnalyzing = !isAnalyzing
+                if (!isAnalyzing) {
+                    isAnalyzing = true
+                }
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter) // Aligner le bouton en bas à droite
@@ -108,17 +117,17 @@ fun ARScreen(
                 ), // Marge du bouton
             containerColor = MaterialTheme.colorScheme.background,
             contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
-            shape = MaterialTheme.shapes.extraLarge
+            shape = MaterialTheme.shapes.extraLarge,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = if (isAnalyzing) R.drawable.stop_circle_24px else R.drawable.play_circle_24px),
-                    contentDescription = if (isAnalyzing) "Stop AR" else "Display AR",
+                    painter = painterResource(id = R.drawable.play_circle_24px),
+                    contentDescription = "Display AR",
                     tint = MaterialTheme.colorScheme.onBackground // Icône en onBackground
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    if (isAnalyzing) "Stop AR" else "Display AR",
+                    "Display AR",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
                 )
