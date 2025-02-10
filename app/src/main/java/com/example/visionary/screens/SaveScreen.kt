@@ -1,36 +1,24 @@
 package com.example.visionary.screens
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.Image
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,241 +27,146 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.visionary.R
+import androidx.navigation.NavController
 import com.example.visionary.models.PhotoViewModel
-import com.example.visionary.models.SavedImage
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+
 
 @Composable
 fun SaveScreen(
     modifier: Modifier = Modifier,
     onDeleteImage: (String) -> Unit,
+    navController: NavController
 ) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp // Screen total height
-    val navbarHeight = screenHeight * 0.1f
-    var selectedImage by remember { mutableStateOf<SavedImage?>(null) }
-
-    val context = LocalContext.current
     val viewModel: PhotoViewModel = viewModel()
 
-    // Recharger les images lorsque l'utilisateur accède à cette page
-    LaunchedEffect(Unit) {
-        viewModel.reloadSavedImages(context)
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val navbarHeight = screenHeight * 0.1f
+    val context = LocalContext.current
+
+    LaunchedEffect(navController) { viewModel.refreshImages() }
+
+    val savedImages by viewModel.savedImages.collectAsState()
+
+
+    suspend fun saveBitmapToCache(bitmap: Bitmap, id: String): Uri? {
+        return withContext(Dispatchers.IO) {
+            val cacheDir = context.cacheDir
+            val file = File(cacheDir, "saved_image_$id.jpg")
+
+            try {
+                FileOutputStream(file).use { output ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, output)
+                }
+                Uri.fromFile(file)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
     }
 
-    val currentSavedImages by viewModel.savedImages.collectAsState()
-
-    if (currentSavedImages.isEmpty()) {
+    if (savedImages.isEmpty()) {
         Box(
-            modifier = modifier
-                .offset(y = (100).dp),
+            modifier = modifier.offset(y = 100.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                "There are no photos yet",
-                modifier = Modifier.padding(16.dp),
-            )
+            Text("There are no photos yet", modifier = Modifier.padding(16.dp))
         }
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
+            // Conteneur de texte et des images
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background)
                     .zIndex(1f)
             ) {
+                // Titre avec zIndex pour le placer au-dessus des images
                 Text(
                     "Saves",
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
 
                 Divider(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     color = MaterialTheme.colorScheme.primary,
                     thickness = 3.dp
                 )
             }
 
+            // Liste d'images avec un espace supérieur pour le texte
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalItemSpacing = 8.dp,
-                userScrollEnabled = true,
+                userScrollEnabled = true, // Assure que le scroll est bien actif
                 contentPadding = PaddingValues(
-                    top = (64 + 8).dp,
+                    top = (64 + 8).dp, // Espacement supérieur pour le texte
                     bottom = 16.dp + navbarHeight,
                     start = 16.dp,
                     end = 16.dp
                 ),
                 modifier = modifier
             ) {
-                items(currentSavedImages) { savedImage ->
-                    Image(
-                        bitmap = savedImage.bitmap.asImageBitmap(),
-                        contentDescription = null,
+                items(savedImages) { savedImage ->
+                    var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+                    var isLoading by remember { mutableStateOf(true) }
+
+                    // Charger l'image en arrière-plan
+                    LaunchedEffect(savedImage.id) {
+                        imageUri = saveBitmapToCache(savedImage.bitmap, savedImage.id)
+                        isLoading = false
+                    }
+
+                    Box(
                         modifier = Modifier
                             .size(200.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable { selectedImage = savedImage },
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-
-            // Display a card preview
-            if (selectedImage != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.85f))
-                        .padding(top = (0.05f * LocalConfiguration.current.screenHeightDp).dp, start = 8.dp, end = 8.dp, bottom = 100.dp)
-                        .clickable { selectedImage = null }
-                        .zIndex(2f)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(16.dp)
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .clickable { navController.navigate("information/${savedImage.id}") }
                     ) {
-                        // Close button
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            IconButton(onClick = { selectedImage = null }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = stringResource(id = R.string.cancel), // Close
-                                    Modifier.size(32.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.background,
-                                            MaterialTheme.shapes.extraLarge
-                                        ),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                "Image Title", // string
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Display the image preview
-                        Image(
-                            bitmap = selectedImage!!.bitmap.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(325.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Button(
-                                onClick = {
-                                    onDeleteImage(selectedImage!!.id) // Appeler la fonction de suppression
-                                    viewModel.reloadSavedImages(context) // Recharger les images après la suppression
-                                    selectedImage = null // Fermer la preview
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary,
-                                    contentColor = MaterialTheme.colorScheme.onSecondary,
-                                ),
-                                border = ButtonDefaults.outlinedButtonBorder.copy(
-                                    width = 3.dp,
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.primary,
-                                            MaterialTheme.colorScheme.primary
-                                        )
-                                    )
-                                )
+                        if (isLoading) {
+                            // Placeholder de chargement
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Gray.copy(alpha = 0.3f)),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Delete")
-                                Text("Delete from favorites", style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ))
+                                CircularProgressIndicator()
                             }
-                        }
-
-                        // Information section
-                        Text("Informations", style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-                        )
-
-                        Divider(
-                            modifier = Modifier
-                                .padding(horizontal = 32.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            thickness = 1.dp
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                "\uD83D\uDCDE Phone number: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            Text(
-                                "\uD83D\uDCCD Place: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            Text(
-                                "✉️ Mail: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            Text(
-                                "🔗 Link: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            Text(
-                                "📅 Date: _ _ _",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
+                        } else {
+                            imageUri?.let { uri ->
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(uri)
+                                        .crossfade(true)
+                                        .size(200) // Charge une image optimisée
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
                         }
                     }
                 }

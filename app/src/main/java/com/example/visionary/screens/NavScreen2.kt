@@ -44,7 +44,7 @@ import com.example.visionary.utils.convertStringToBitmap
 @Composable
 fun NavScreen2(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val viewModel = viewModel<PhotoViewModel>()
+    val viewModel: PhotoViewModel = viewModel()
     val context = LocalContext.current
 
     Scaffold(
@@ -76,25 +76,20 @@ fun NavScreen2(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(),
                     onDeleteImage = { imageId ->
                         viewModel.deleteImage(context, imageId)
-                    }
+                    },
+                    navController = navController
                 )
             }
 
-            composable(
-                "information/{savedImageId}/{extractedText}",
-                arguments = listOf(
-                    navArgument("savedImageId") { type = NavType.StringType },
-                    navArgument("extractedText") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
+            composable("information/{savedImageId}") { backStackEntry ->
                 val savedImageId = backStackEntry.arguments?.getString("savedImageId")
-                val extractedText = backStackEntry.arguments?.getString("extractedText")
                 InformationScreen(
                     navController = navController,
-                    savedImageId = savedImageId,
-                    formattedText = extractedText
+                    savedImageId = savedImageId
                 )
             }
+
+
 
         }
     }
@@ -185,12 +180,12 @@ fun BottomNavbar(navController: NavController) {
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel){
+fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel, navController: NavController) {
     val context = LocalContext.current
     var showARScreen by remember { mutableStateOf(false) }
 
 
-    when(selectedIndex){
+    when(selectedIndex) {
         0 -> HomeScreen(
             onNavigateToAR = {
                 showARScreen = true
@@ -201,9 +196,11 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel:
             modifier = Modifier.fillMaxWidth(),
             onDeleteImage = { imageId ->
                 viewModel.deleteImage(context, imageId)
-            }
+            },
+            navController = rememberNavController()
         )
     }
+
     /*if(showARScreen){
         ARScreen(
             onBack = {

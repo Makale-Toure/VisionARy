@@ -4,6 +4,7 @@ accompanistSystemuicontrollerVersion = "0.30.1"
 agp = "8.4.1"
 cameraCore = "1.4.0"
 cameraViewVersion = "1.0.0-alpha31"
+coilCompose = "2.2.2"
 core = "1.47.0"
 entityExtraction = "16.0.0-beta5"
 kotlin = "1.9.0"
@@ -31,6 +32,7 @@ androidx-camera-view-v100alpha31 = { module = "androidx.camera:camera-view", ver
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 core = { module = "com.google.ar:core", version.ref = "core" }
 entity-extraction = { module = "com.google.mlkit:entity-extraction", version.ref = "entityExtraction" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

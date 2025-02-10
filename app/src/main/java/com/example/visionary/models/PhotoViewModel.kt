@@ -29,10 +29,12 @@ import com.google.mlkit.nl.entityextraction.EntityExtractorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -41,42 +43,64 @@ import java.util.UUID
 
 data class SavedImage (
     val id: String, // Identifiant unique
-    val bitmap: Bitmap
+    val bitmap: Bitmap, // Image bitmap
+    val extractedText: String
 )
 
 class PhotoViewModel(application: Application) : AndroidViewModel(application) {
+
+    // List of saved images
     private val _savedImages = MutableStateFlow<List<SavedImage>>(emptyList())
     val savedImages: StateFlow<List<SavedImage>> = _savedImages.asStateFlow()
 
+    // Detected text from an image
     private val _detectedText = MutableStateFlow("")
-    val detectedText = _detectedText.asStateFlow()
+    val detectedText: StateFlow<String> = _detectedText.asStateFlow()
 
+    // Initialisation
     init {
+        refreshImages()
+    }
+
+    fun refreshImages() {
         viewModelScope.launch {
-            val context = getApplication<Application>().applicationContext
-            _savedImages.value = loadSavedImages(context)
+            _savedImages.value = loadSavedImagesFromStorage(getApplication()) // ✅ Recharge toutes les images depuis le stockage
         }
     }
 
-    fun reloadSavedImages(context: Context) {
-        viewModelScope.launch {
-            _savedImages.value = loadSavedImages(context)
-        }
+
+    // Add an image to the saved images list
+    // This function will add a new SavedImage object to the savedImages list
+    fun addSavedImage(savedImage: SavedImage) {
+        _savedImages.value += savedImage
     }
 
+    // Delete a saved image by ID
+    // This function will remove a saved image from the savedImages list
+    fun deleteSavedImage(imageId: String) {
+        _savedImages.value = _savedImages.value.filter { it.id != imageId }
+    }
+
+    // Callback for when a photo is taken
+    // This function will save the photo to storage and extract text from it
     fun onPhotoTaken(context: Context, bitmap: Bitmap) {
         viewModelScope.launch {
             if (bitmap.width > 0 && bitmap.height > 0) {
-                val filename = "photo_${System.currentTimeMillis()}.jpg"
-                val file = saveBitmapToAppStorage(context, bitmap, filename)
+                val filename = "${System.currentTimeMillis()}.jpg"
+                val file = saveBitmapToStorage(context, bitmap, filename)
                 if (file != null) {
-                    val newImage = SavedImage(
-                        id = file.nameWithoutExtension, // Générer un identifiant unique
-                        bitmap = bitmap
-                    )
-                    _savedImages.value += newImage
+                    // Extraction du texte de l'image après capture
+                    extractTextFromImage(bitmap) { extractedText ->
+                        val savedImage = SavedImage(
+                            id = file.nameWithoutExtension,
+                            bitmap = bitmap,
+                            extractedText = extractedText
+                        )
+                        addSavedImage(savedImage)
+                    }
+
                 } else {
-                    Log.e("PhotoViewModel", "Failed to save bitmap")
+                    Log.e("PhotoViewModel", "Failed to save image")
                 }
             } else {
                 Log.e("PhotoViewModel", "Invalid bitmap")
@@ -84,42 +108,58 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Function to extract text from a bitmap using Google ML text recognition
+
+    // Google ML Kit Text Recognition
+    // Extract text from an image and return it
     fun extractTextFromImage(bitmap: Bitmap, onTextExtracted: (String) -> Unit) {
-        // Create an InputImage object from the bitmap
         val image = InputImage.fromBitmap(bitmap, 0)
-        // Initialize the text recognizer
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        // Process the image
         recognizer.process(image)
-            // On successful text recognition
             .addOnSuccessListener { visionText ->
                 val extractedText = visionText.text
-
-                // Log the extracted text
-                Log.d("text", "Extracted text: $extractedText")
-                // Return the extracted text
-                // onTextExtracted(extractedText)
-
-                // Call the entity extraction function
-                extractEntitiesFromText(extractedText) { entities ->
-                    // Log the extracted entities
-                    Log.d("entities", "Extracted entities: $entities")
-                    // Return the extracted entities
-                    onTextExtracted(entities)
-                }
-
-
+                onTextExtracted(extractedText)
             }
-            // On failure
             .addOnFailureListener { e ->
-                Log.e("text", "Text recognition failed: $e")
+                Log.e("TextRecognition", "Text recognition failed: $e")
                 onTextExtracted("")
             }
     }
 
+    // Save a bitmap to storage
+    // Returns the file where the bitmap was saved
+    private fun saveBitmapToStorage(context: Context, bitmap: Bitmap, filename: String): File? {
+        val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
+        if (!imageFolder.exists()) {
+            imageFolder.mkdirs()
+        }
+        val file = File(imageFolder, filename)
+        return try {
+            FileOutputStream(file).use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            }
+            file
+        } catch (e: Exception) {
+            Log.e("PhotoViewModel", "Failed to save image: ${e.localizedMessage}")
+            null
+        }
+    }
 
-    // Function to extract entities from a text using Google ML entity extraction
+    // Load saved images from storage
+    // Returns a list of SavedImage objects
+    fun loadSavedImagesFromStorage(context: Context): List<SavedImage> {
+        val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
+
+        if (imageFolder.exists() && imageFolder.isDirectory) {
+            return imageFolder.listFiles()?.mapNotNull { file ->
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                bitmap?.let { SavedImage(id = file.nameWithoutExtension, bitmap = it, extractedText = "") }
+            } ?: emptyList()
+        }
+
+        return emptyList()
+    }
+
+    // Extraire les entités du texte
     fun extractEntitiesFromText(text: String, onEntitiesExtracted: (String) -> Unit) {
         val entityExtractor = EntityExtraction.getClient(
             EntityExtractorOptions.Builder(EntityExtractorOptions.FRENCH).build()
@@ -128,60 +168,43 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         entityExtractor.downloadModelIfNeeded()
             .addOnSuccessListener {
                 val params = EntityExtractionParams.Builder(text).build()
-
                 entityExtractor.annotate(params)
                     .addOnSuccessListener { annotations: List<EntityAnnotation> ->
-                        if (annotations.isEmpty()) {
-                            Log.d("EntityExtraction", "Aucune entité détectée.")
-                            onEntitiesExtracted(text)
-                            return@addOnSuccessListener
-                        }
-
                         val formattedEntities = formatEntities(annotations)
                         val remainingText = extractRemainingText(text, annotations)
-
-                        val finalOutput = formattedEntities + "\n\n" + remainingText
-                        onEntitiesExtracted(finalOutput)
+                        val finalText = formattedEntities + "\n\n" + remainingText
+                        onEntitiesExtracted(finalText)
                     }
                     .addOnFailureListener { e ->
-                        Log.e("EntityExtraction", "Échec de l'annotation", e)
-                        onEntitiesExtracted(text)
+                        Log.e("EntityExtraction", "Entity annotation failed: $e")
+                        onEntitiesExtracted(text) // Return the original text on failure
                     }
             }
             .addOnFailureListener { e ->
-                Log.e("EntityExtraction", "Échec du téléchargement du modèle", e)
-                onEntitiesExtracted(text)
+                Log.e("EntityExtraction", "Failed to download model: $e")
+                onEntitiesExtracted(text) // Return the original text on failure
             }
     }
 
-    fun formatEntities(annotations: List<EntityAnnotation>): String {
-        val stringBuilder = StringBuilder()
-
-        for (annotation in annotations) {
+    // Formater les entités extraites
+    private fun formatEntities(annotations: List<EntityAnnotation>): String {
+        return annotations.joinToString("\n") { annotation ->
+            val entityName = getEntityName(annotation.entities.firstOrNull()?.type ?: -1)
             val annotatedText = annotation.annotatedText
-            for (entity in annotation.entities) {
-                val entityName = getEntityName(entity.type)
-                stringBuilder.append("${entityName}: **$annotatedText**\n")
-            }
+            "$entityName: $annotatedText"
         }
-
-        return stringBuilder.toString().trim()
     }
 
-
-    fun extractRemainingText(text: String, annotations: List<EntityAnnotation>): String {
+    // Extraire le texte restant après l'annotation des entités
+    private fun extractRemainingText(text: String, annotations: List<EntityAnnotation>): String {
         val stringBuilder = StringBuilder()
         var currentIndex = 0
 
-        for (annotation in annotations) {
-            val start = annotation.start
-            val end = annotation.end
-
-            if (currentIndex < start) {
-                stringBuilder.append(text.substring(currentIndex, start))
+        annotations.forEach { annotation ->
+            if (currentIndex < annotation.start) {
+                stringBuilder.append(text.substring(currentIndex, annotation.start))
             }
-
-            currentIndex = end
+            currentIndex = annotation.end
         }
 
         if (currentIndex < text.length) {
@@ -191,7 +214,8 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return stringBuilder.toString().trim()
     }
 
-    fun getEntityName(entityType: Int): String {
+    // Obtenir le nom de l'entité en fonction de son type
+    private fun getEntityName(entityType: Int): String {
         return when (entityType) {
             Entity.TYPE_ADDRESS -> "Address"
             Entity.TYPE_DATE_TIME -> "Date and time"
@@ -200,66 +224,33 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
             Entity.TYPE_IBAN -> "IBAN"
             Entity.TYPE_PHONE -> "Phone number"
             Entity.TYPE_URL -> "URL"
-            else -> "Other informations"
+            else -> "Other"
         }
     }
 
-    private fun saveBitmapToAppStorage(context: Context, bitmap: Bitmap, filename: String): File? {
-        val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
-        if (!imageFolder.exists()) {
-            imageFolder.mkdirs()
-        }
-
-        val file = File(imageFolder, filename)
-        return try {
-            FileOutputStream(file).use { stream ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-            }
-            file
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun loadSavedImages(context: Context): List<SavedImage> {
-        val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
-        return if (imageFolder.exists() && imageFolder.isDirectory) {
-            imageFolder.listFiles()?.mapNotNull { file ->
-                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                if (bitmap != null) {
-                    SavedImage(
-                        id = file.nameWithoutExtension, // Utiliser le nom du fichier comme identifiant
-                        bitmap = bitmap
-                    )
-                } else {
-                    null
-                }
-            } ?: emptyList()
-        } else {
-            emptyList()
-        }
-    }
-
+    // Supprimer une image par ID
     fun deleteImage(context: Context, imageId: String) {
         viewModelScope.launch {
             val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
-            if (imageFolder.exists() && imageFolder.isDirectory) {
-                val fileToDelete = imageFolder.listFiles()?.find { file ->
-                    file.nameWithoutExtension == imageId
-                }
+            val fileToDelete = imageFolder.listFiles()?.find { it.nameWithoutExtension == imageId }
 
-                if (fileToDelete != null && fileToDelete.delete()) {
-                    // Mettre à jour la liste des images
-                    _savedImages.value = _savedImages.value.filter { it.id != imageId }
-                    Log.d("PhotoViewModel", "Image deleted: ${fileToDelete.name}")
-                } else {
-                    Log.e("PhotoViewModel", "Failed to delete image")
-                }
+            if (fileToDelete?.delete() == true) {
+                // ✅ Supprime l'image de la liste immédiatement
+                _savedImages.value = _savedImages.value.filter { it.id != imageId }
+                Log.d("PhotoViewModel", "Image supprimée : ${fileToDelete.name}")
+            } else {
+                Log.e("PhotoViewModel", "Échec de la suppression de l'image")
             }
         }
     }
 
+
+    // Réinitialiser le texte détecté
+    fun clearDetectedText() {
+        _detectedText.value = ""
+    }
+
+    // Conversion de ImageProxy en Bitmap (pour les images de la caméra)
     @OptIn(ExperimentalGetImage::class)
     fun ImageProxy.toBitmap(): Bitmap {
         val image = this.image ?: throw IllegalStateException("Image is null")
@@ -283,32 +274,22 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
 
         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-        // Appliquer une rotation si nécessaire
-        val matrix = Matrix().apply {
-            postRotate(this@toBitmap.imageInfo.rotationDegrees.toFloat())
-        }
+        val matrix = Matrix().apply { postRotate(this@toBitmap.imageInfo.rotationDegrees.toFloat()) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
+    // Analyser une image depuis un ImageProxy (comme pour la caméra)
     fun analyzeImage(imageProxy: ImageProxy) {
-        val bitmap = imageProxy.toBitmap() // Convertir ImageProxy en Bitmap
+        val bitmap = imageProxy.toBitmap()
         extractTextFromImage(bitmap) { extractedText ->
-            // Si aucun texte n'est détecté
             if (extractedText.isBlank()) {
                 _detectedText.value = "No text detected."
             } else {
-                // Extraire les entités du texte détecté
                 extractEntitiesFromText(extractedText) { classifiedText ->
-                    // Mettre à jour le texte détecté avec les entités classées
                     _detectedText.value = classifiedText
                 }
             }
         }
-        imageProxy.close() // Fermer l'ImageProxy après utilisation
+        imageProxy.close()
     }
-
-    fun clearDetectedText() {
-        _detectedText.value = "" // Réinitialiser le texte
-    }
-
 }

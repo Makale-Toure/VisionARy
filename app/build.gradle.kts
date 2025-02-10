@@ -81,4 +81,8 @@ dependencies {
     implementation(libs.entity.extraction)
     // AR
     implementation(libs.core)
+
+    // Coil for image loading
+    implementation(libs.coil.compose)
+
 }

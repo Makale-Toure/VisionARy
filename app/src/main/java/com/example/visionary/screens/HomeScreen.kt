@@ -54,23 +54,20 @@ import com.example.visionary.utils.convertBitmapToString
 @Composable
 fun HomeScreen(
     onNavigateToAR: () -> Unit,
-    navController: NavController
+    navController: NavController// ✅ On utilise le ViewModel partagé
 ) {
+
+    val viewModel: PhotoViewModel = viewModel()
+
+    val savedImages by viewModel.savedImages.collectAsState()
+
+
     // Composable function to display the "Main screen"
     val context = LocalContext.current
-    //val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-
-    val scope = rememberCoroutineScope()
     // Last Photo Taken bitmap to display it
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     // Boolean to show the confirmation dialog to confirm the photo
     var showConfirmationDialog by remember { mutableStateOf(false) }
-    // Create the ViewModel
-    val viewModel = viewModel<PhotoViewModel>()
-    // Get the list of bitmaps from the ViewModel
-    val savedImages by viewModel.savedImages.collectAsState()
-
-    var extractedText by remember { mutableStateOf("") }
 
     // Create and configure the Camera controller
     val imageCaptureController = remember {
@@ -167,25 +164,17 @@ fun HomeScreen(
                 onConfirm = {
                     viewModel.onPhotoTaken(context, capturedBitmap!!)
                     showConfirmationDialog = false
-                    viewModel.reloadSavedImages(context) // Recharger les images après la prise de photo
 
-                    // Dans la ConfirmationDialog, après avoir extrait les entités :
-                    viewModel.extractTextFromImage(capturedBitmap!!) { text ->
-                        viewModel.extractEntitiesFromText(text) { formattedText ->
-                            // Pas de formatage ici, on passe juste le texte brut à InformationScreen
-                            val lastImage = viewModel.savedImages.value.lastOrNull()
-                            lastImage?.let {
-                                val lastSavedImageId = it.id
-                                // Naviguer vers la page InformationScreen en passant le texte brut
-                                navController.navigate(
-                                    "information/$lastSavedImageId/${formattedText.replace("\n", " ")}"
-                                )
-                            }
-                        }
+                    // Récupérer la dernière image sauvegardée
+                    val lastImage = viewModel.savedImages.value.lastOrNull()
+
+                    // Si une image existe, naviguer vers la page d'information
+                    lastImage?.let {
+                        navController.navigate("information/${null}")
                     }
 
                     capturedBitmap = null
-                            },
+                },
                 onCancel = {
                     showConfirmationDialog = false
                     capturedBitmap = null
