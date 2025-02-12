@@ -66,7 +66,7 @@ fun NavScreen2(modifier: Modifier = Modifier) {
             }
 
             composable("ar") {
-                ARScreen(
+                ARScreen2(
                     onBack = { navController.popBackStack() },
                 )
             }

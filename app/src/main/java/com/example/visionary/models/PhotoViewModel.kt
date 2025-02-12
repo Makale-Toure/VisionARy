@@ -278,15 +278,49 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
+    fun extractEntitiesFromTextAsMap(text: String, onEntitiesExtracted: (Map<String, String>) -> Unit) {
+        val entityExtractor = EntityExtraction.getClient(
+            EntityExtractorOptions.Builder(EntityExtractorOptions.FRENCH).build()
+        )
+
+        entityExtractor.downloadModelIfNeeded()
+            .addOnSuccessListener {
+                val params = EntityExtractionParams.Builder(text).build()
+                entityExtractor.annotate(params)
+                    .addOnSuccessListener { annotations: List<EntityAnnotation> ->
+                        val entitiesMap = annotations.associate { annotation ->
+                            val entityName = getEntityName(annotation.entities.firstOrNull()?.type ?: -1)
+                            val annotatedText = annotation.annotatedText
+                            entityName to annotatedText
+                        }
+                        onEntitiesExtracted(entitiesMap)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("EntityExtraction", "Entity annotation failed: $e")
+                        onEntitiesExtracted(emptyMap())
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e("EntityExtraction", "Failed to download model: $e")
+                onEntitiesExtracted(emptyMap())
+            }
+    }
+
     // Analyser une image depuis un ImageProxy (comme pour la caméra)
     fun analyzeImage(imageProxy: ImageProxy) {
         val bitmap = imageProxy.toBitmap()
         extractTextFromImage(bitmap) { extractedText ->
             if (extractedText.isBlank()) {
-                _detectedText.value = "No text detected."
+                _detectedText.value = "No entities detected."
             } else {
-                extractEntitiesFromText(extractedText) { classifiedText ->
-                    _detectedText.value = classifiedText
+                extractEntitiesFromTextAsMap(extractedText) { entitiesMap ->
+                    if (entitiesMap.isEmpty()) {
+                        _detectedText.value = "No entities detected."
+                    } else {
+                        _detectedText.value = entitiesMap.entries.joinToString("\n") {
+                            "${it.key}: ${it.value}"
+                        }
+                    }
                 }
             }
         }

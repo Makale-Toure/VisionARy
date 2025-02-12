@@ -2,9 +2,15 @@ package com.example.visionary.screens
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.MotionEvent
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,15 +18,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
+import com.example.visionary.models.PhotoViewModel
 import com.example.visionary.utils.Utils
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
@@ -39,6 +54,7 @@ import io.github.sceneview.rememberNodes
 import io.github.sceneview.rememberOnGestureListener
 import io.github.sceneview.rememberView
 import io.github.sceneview.node.Node
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -46,6 +62,7 @@ fun ARScreen2(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    val viewModel = viewModel<PhotoViewModel>()
 
     // Initialisation du moteur AR
     val engine = rememberEngine()
@@ -68,7 +85,34 @@ fun ARScreen2(
         mutableStateOf<Frame?>(null)
     }
 
+    // États pour l'analyse d'image
+    var isAnalyzing by remember { mutableStateOf(false) }
+    val cameraController = remember {
+        LifecycleCameraController(context).apply {
+            setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
+        }
+    }
+
+    LaunchedEffect(isAnalyzing) {
+        if (isAnalyzing) {
+            val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
+                viewModel.analyzeImage(imageProxy)
+            }
+            cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context), imageAnalyzer)
+
+            delay(5000) // Analyse pendant 5 secondes
+            isAnalyzing = false
+            cameraController.clearImageAnalysisAnalyzer()
+        }
+    }
+
+
     Box(modifier = Modifier.fillMaxSize()) {
+        CameraPreview(
+            controller = cameraController,
+            modifier = Modifier.fillMaxSize()
+        )
+        val detectedEntity by viewModel.detectedText.collectAsState()
         ARScene(
             modifier = Modifier.fillMaxSize(),
             childNodes = childNodes,
@@ -91,17 +135,29 @@ fun ARScreen2(
                     false -> Config.DepthMode.DISABLED
                 }
                 config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+                config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
             },
+
             onGestureListener = rememberOnGestureListener(
                 onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
-                    if (node is ModelNode) {
-                        // ✅ Si on clique sur le téléphone, lancer l'appel
-                        val phoneNumber = "+33612345678" // Mets ici le numéro à appeler
-                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:$phoneNumber")
+                    if (node is ModelNode){
+                        if (detectedEntity.contains("Phone number")) {
+                            val phoneNumberRegex = Regex("""Phone number:\s*([\d\s]+)""")
+                            // Si on clique sur le téléphone, lancer l'appel
+                            val phoneNumber = phoneNumberRegex.find(detectedEntity)
+                                ?.groupValues?.get(1)
+                                ?.replace("\\s".toRegex(), "") // Supprimer les espaces // numéro random: "+33612345678"
+                            if (!phoneNumber.isNullOrEmpty()) {
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = Uri.parse("tel:$phoneNumber")
+                                }
+                                context.startActivity(intent)
+                            } else {
+                                Log.d("Phone number non détecté", "Aucun numéro de téléphone détecté")
+                            }
                         }
-                        context.startActivity(intent)
-                    } else {
+                    }
+                     else {
                         // Création d'un ancrage si aucun modèle n'est détecté sous le clic
                         val hitTestResult = frame.value?.hitTest(e.x, e.y)
                         hitTestResult?.firstOrNull { it.isValid(depthPoint = false, point = false) }
@@ -115,9 +171,71 @@ fun ARScreen2(
                                 childNodes += nodeModel
                             }
                     }
+                },
+                onDoubleTap = { e: MotionEvent, node: Node? ->
+                    if (detectedEntity.contains("URL")) {
+                        val urlRegex = Regex("""URL:\s*(\S+)""")
+                        var url = urlRegex.find(detectedEntity)?.groupValues?.get(1)
+
+                        if (!url.isNullOrEmpty()) {
+                            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                                url = "http://$url"
+                            }
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse(url)
+                            }
+                            context.startActivity(intent)
+                        }
+                    }
                 }
             )
         )
+
+        if (detectedEntity.isNotEmpty()) {
+            Text(
+                detectedEntity,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .padding(16.dp),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
+        // Bouton pour démarrer l'analyse
+        FloatingActionButton(
+            onClick = {
+                if (!isAnalyzing) {
+                    isAnalyzing = true
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .width(200.dp)
+                .height(56.dp)
+                .padding(bottom = 16.dp)
+                .border(
+                    4.dp,
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.shapes.extraLarge
+                ),
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
+            shape = MaterialTheme.shapes.extraLarge,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.play_circle_24px),
+                    contentDescription = "Display AR",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Display AR",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
+                )
+            }
+        }
 
         FloatingActionButton(
             onClick = {
