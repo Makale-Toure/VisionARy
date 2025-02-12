@@ -1,5 +1,7 @@
 package com.example.visionary.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.view.MotionEvent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -15,10 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.visionary.R
-import com.example.visionary.util.Utils
+import com.example.visionary.utils.Utils
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
 import com.google.ar.core.TrackingFailureReason
@@ -27,6 +30,7 @@ import io.github.sceneview.ar.arcore.createAnchorOrNull
 import io.github.sceneview.ar.arcore.isValid
 import io.github.sceneview.ar.rememberARCameraNode
 import io.github.sceneview.model.ModelInstance
+import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberCollisionSystem
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
@@ -41,6 +45,9 @@ import io.github.sceneview.node.Node
 fun ARScreen2(
     onBack: () -> Unit,
 ) {
+    val context = LocalContext.current
+
+    // Initialisation du moteur AR
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine = engine)
     val materialLoader = rememberMaterialLoader(engine = engine)
@@ -87,22 +94,26 @@ fun ARScreen2(
             },
             onGestureListener = rememberOnGestureListener(
                 onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
-                    if (node == null) {
-                        val hitTestResult = frame.value?.hitTest(e.x, e.y)
-                        hitTestResult?.firstOrNull{
-                            it.isValid(
-                                depthPoint = false,
-                                point = false
-                            )
-                        }?.createAnchorOrNull()?.let {
-                            val nodeModel = Utils.createAnchorNode(
-                                engine = engine,
-                                modelLoader = modelLoader,
-                                materialLoader = materialLoader,
-                                anchor = it,
-                            )
-                            childNodes += nodeModel
+                    if (node is ModelNode) {
+                        // ✅ Si on clique sur le téléphone, lancer l'appel
+                        val phoneNumber = "+33612345678" // Mets ici le numéro à appeler
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:$phoneNumber")
                         }
+                        context.startActivity(intent)
+                    } else {
+                        // Création d'un ancrage si aucun modèle n'est détecté sous le clic
+                        val hitTestResult = frame.value?.hitTest(e.x, e.y)
+                        hitTestResult?.firstOrNull { it.isValid(depthPoint = false, point = false) }
+                            ?.createAnchorOrNull()?.let {
+                                val nodeModel = Utils.createAnchorNode(
+                                    engine = engine,
+                                    modelLoader = modelLoader,
+                                    materialLoader = materialLoader,
+                                    anchor = it,
+                                )
+                                childNodes += nodeModel
+                            }
                     }
                 }
             )

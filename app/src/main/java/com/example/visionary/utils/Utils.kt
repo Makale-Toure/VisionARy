@@ -1,15 +1,12 @@
-package com.example.visionary.util
+package com.example.visionary.utils
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import io.github.sceneview.ar.node.AnchorNode
 import io.github.sceneview.loaders.MaterialLoader
 import io.github.sceneview.loaders.ModelLoader
-import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.CubeNode
 import io.github.sceneview.node.ModelNode
 
@@ -27,7 +24,7 @@ object Utils {
         return "armodels/phone.glb"
     }
 
-    fun createAnchorNode(
+    fun createAnc-horNode(
         engine: Engine,
         modelLoader: ModelLoader,
         materialLoader: MaterialLoader,
