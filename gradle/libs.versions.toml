@@ -5,6 +5,7 @@ agp = "8.4.1"
 arsceneview = "2.2.1"
 cameraCore = "1.4.0"
 cameraViewVersion = "1.0.0-alpha31"
+coilCompose = "2.2.2"
 core = "1.47.0"
 entityExtraction = "16.0.0-beta5"
 kotlin = "1.9.0"
@@ -20,6 +21,7 @@ lifecycleRuntimeKtxVersion = "2.7.0"
 navigationCompose = "2.8.4"
 sceneform = "1.17.1"
 textRecognition = "16.0.0"
+uiTestAndroid = "1.7.2"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -34,6 +36,7 @@ androidx-lifecycle-runtime-ktx-v270 = { module = "androidx.lifecycle:lifecycle-r
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 arsceneview = { module = "io.github.sceneview:arsceneview", version.ref = "arsceneview" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 core = { module = "com.google.ar:core", version.ref = "core" }
 entity-extraction = { module = "com.google.mlkit:entity-extraction", version.ref = "entityExtraction" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -52,6 +55,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraView" }
 sceneform = { module = "com.google.ar.sceneform:sceneform", version.ref = "sceneform" }
 text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "textRecognition" }
+androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

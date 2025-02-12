@@ -3,6 +3,7 @@ package com.example.visionary.screens
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -43,28 +44,30 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
 import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
+import com.example.visionary.utils.convertBitmapToString
 
 @Composable
 fun HomeScreen(
-    onNavigateToAR: () -> Unit
+    onNavigateToAR: () -> Unit,
+    navController: NavController// ✅ On utilise le ViewModel partagé
 ) {
+
+    val viewModel: PhotoViewModel = viewModel()
+
+    val savedImages by viewModel.savedImages.collectAsState()
+
+
     // Composable function to display the "Main screen"
     val context = LocalContext.current
-    //val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-
-    val scope = rememberCoroutineScope()
     // Last Photo Taken bitmap to display it
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     // Boolean to show the confirmation dialog to confirm the photo
     var showConfirmationDialog by remember { mutableStateOf(false) }
-    // Create the ViewModel
-    val viewModel = viewModel<PhotoViewModel>()
-    // Get the list of bitmaps from the ViewModel
-    val savedImages by viewModel.savedImages.collectAsState()
 
     // Create and configure the Camera controller
     val imageCaptureController = remember {
@@ -81,22 +84,6 @@ fun HomeScreen(
             controller = imageCaptureController,
             modifier = Modifier.fillMaxSize()
         )
-
-        LazyColumn {
-            items(savedImages) { savedImage ->
-                var extractedText by remember { mutableStateOf("") }
-                LaunchedEffect(savedImages) {
-                    viewModel.extractTextFromImage(savedImage.bitmap) { text ->
-                        extractedText = text
-                    }
-                }
-                Text(text = extractedText,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                    )
-            }
-        }
 
         FloatingActionButton(
 
@@ -177,13 +164,17 @@ fun HomeScreen(
                 onConfirm = {
                     viewModel.onPhotoTaken(context, capturedBitmap!!)
                     showConfirmationDialog = false
-                    viewModel.reloadSavedImages(context) // Recharger les images après la prise de photo
-                    viewModel.extractTextFromImage(capturedBitmap!!) { text ->
-                        // Ajouter du texte extrait à la liste ou afficher dans l'UI
-                        Log.d("HomeScreen", "Texte extrait: $text")
+
+                    // Récupérer la dernière image sauvegardée
+                    val lastImage = viewModel.savedImages.value.lastOrNull()
+
+                    // Si une image existe, naviguer vers la page d'information
+                    lastImage?.let {
+                        navController.navigate("information/${null}")
                     }
+
                     capturedBitmap = null
-                            },
+                },
                 onCancel = {
                     showConfirmationDialog = false
                     capturedBitmap = null

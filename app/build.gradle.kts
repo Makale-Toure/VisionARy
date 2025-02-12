@@ -64,6 +64,7 @@ dependencies {
 
     // Text recognition
     implementation(libs.text.recognition)
+    implementation(libs.androidx.ui.test.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -85,4 +86,8 @@ dependencies {
     implementation(libs.core)
     implementation (libs.arsceneview)
     implementation(libs.androidx.lifecycle.runtime.ktx.v270)
+
+    // Coil for image loading
+    implementation(libs.coil.compose)
+
 }
