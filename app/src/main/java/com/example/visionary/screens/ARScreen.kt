@@ -133,6 +133,7 @@ fun ARScreen(
                 )
             }
         }
+
         // Bouton pour revenir en arrière
         FloatingActionButton(
             onClick = {

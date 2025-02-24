@@ -2,13 +2,15 @@ package com.example.visionary.screens
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.view.MotionEvent
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,6 +66,9 @@ fun ARScreen2(
 ) {
     val context = LocalContext.current
     val viewModel = viewModel<PhotoViewModel>()
+    var countdown by remember { mutableStateOf(10) }
+    var isCountingDown by remember { mutableStateOf(false) }
+
 
     // Initialisation du moteur AR
     val engine = rememberEngine()
@@ -87,6 +93,7 @@ fun ARScreen2(
 
     // États pour l'analyse d'image
     var isAnalyzing by remember { mutableStateOf(false) }
+
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
@@ -100,7 +107,8 @@ fun ARScreen2(
             }
             cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context), imageAnalyzer)
 
-            delay(5000) // Analyse pendant 5 secondes
+            // Analyse pendant 3 secondes
+            delay(3000)
             isAnalyzing = false
             cameraController.clearImageAnalysisAnalyzer()
         }
@@ -108,88 +116,95 @@ fun ARScreen2(
 
 
     Box(modifier = Modifier.fillMaxSize()) {
-        CameraPreview(
-            controller = cameraController,
-            modifier = Modifier.fillMaxSize()
-        )
-        val detectedEntity by viewModel.detectedText.collectAsState()
-        ARScene(
-            modifier = Modifier.fillMaxSize(),
-            childNodes = childNodes,
-            engine = engine,
-            view = view,
-            modelLoader = modelLoader,
-            collisionSystem = collisionSystem,
-            planeRenderer = planeRenderer.value,
-            cameraNode = cameraNode,
-            materialLoader = materialLoader,
-            onTrackingFailureChanged = {
-                trackingFailureReason.value = it
-            },
-            onSessionUpdated = { _, updatedFrame ->
-                frame.value = updatedFrame
-            },
-            sessionConfiguration = { session, config ->
-                config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                    true -> Config.DepthMode.AUTOMATIC
-                    false -> Config.DepthMode.DISABLED
-                }
-                config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
-                config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-            },
+        if(isAnalyzing){
+            CameraPreview(
+                controller = cameraController,
+                modifier = Modifier.fillMaxSize()
+            )
 
-            onGestureListener = rememberOnGestureListener(
-                onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
-                    if (node is ModelNode){
-                        if (detectedEntity.contains("Phone number")) {
-                            val phoneNumberRegex = Regex("""Phone number:\s*([\d\s]+)""")
-                            // Si on clique sur le téléphone, lancer l'appel
-                            val phoneNumber = phoneNumberRegex.find(detectedEntity)
-                                ?.groupValues?.get(1)
-                                ?.replace("\\s".toRegex(), "") // Supprimer les espaces // numéro random: "+33612345678"
-                            if (!phoneNumber.isNullOrEmpty()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ){
+                Text(
+                    text = "Hold the position for few seconds",
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .padding(16.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+        }
+
+        val detectedEntity by viewModel.detectedText.collectAsState()
+
+        if (!isAnalyzing){
+            ARScene(
+                modifier = Modifier.fillMaxSize(),
+                childNodes = childNodes,
+                engine = engine,
+                view = view,
+                modelLoader = modelLoader,
+                collisionSystem = collisionSystem,
+                planeRenderer = planeRenderer.value,
+                cameraNode = cameraNode,
+                materialLoader = materialLoader,
+                onTrackingFailureChanged = {
+                    trackingFailureReason.value = it
+                },
+                onSessionUpdated = { _, updatedFrame ->
+                    frame.value = updatedFrame
+                },
+                sessionConfiguration = { session, config ->
+                    config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                        true -> Config.DepthMode.AUTOMATIC
+                        false -> Config.DepthMode.DISABLED
+                    }
+                    config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+                    config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+                },
+
+                onGestureListener = rememberOnGestureListener(
+                    onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
+                        if(node is ModelNode) {
+                            if (detectedEntity.contains("Phone number")) {
+                                val phoneNumberRegex = Regex("""Phone number:\s*([\d\s]+)""")
+                                // Si on clique sur le téléphone, lancer l'appel
+                                val phoneNumber = phoneNumberRegex.find(detectedEntity)
+                                    ?.groupValues?.get(1)
+                                    ?.replace(
+                                        "\\s".toRegex(),
+                                        ""
+                                    ) // Supprimer les espaces // numéro random: "+33612345678"
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
                                     data = Uri.parse("tel:$phoneNumber")
                                 }
                                 context.startActivity(intent)
-                            } else {
-                                Log.d("Phone number non détecté", "Aucun numéro de téléphone détecté")
                             }
+                        } else {
+                            // Création d'un ancrage si aucun modèle n'est détecté sous le clic
+                            val hitTestResult = frame.value?.hitTest(e.x, e.y)
+                            hitTestResult?.firstOrNull { it.isValid(depthPoint = false, point = false) }
+                                ?.createAnchorOrNull()?.let {
+                                    val nodeModel = Utils.createAnchorNode(
+                                        engine = engine,
+                                        modelLoader = modelLoader,
+                                        materialLoader = materialLoader,
+                                        anchor = it,
+                                    )
+                                    childNodes += nodeModel
+                                }
                         }
                     }
-                     else {
-                        // Création d'un ancrage si aucun modèle n'est détecté sous le clic
-                        val hitTestResult = frame.value?.hitTest(e.x, e.y)
-                        hitTestResult?.firstOrNull { it.isValid(depthPoint = false, point = false) }
-                            ?.createAnchorOrNull()?.let {
-                                val nodeModel = Utils.createAnchorNode(
-                                    engine = engine,
-                                    modelLoader = modelLoader,
-                                    materialLoader = materialLoader,
-                                    anchor = it,
-                                )
-                                childNodes += nodeModel
-                            }
-                    }
-                },
-                onDoubleTap = { e: MotionEvent, node: Node? ->
-                    if (detectedEntity.contains("URL")) {
-                        val urlRegex = Regex("""URL:\s*(\S+)""")
-                        var url = urlRegex.find(detectedEntity)?.groupValues?.get(1)
-
-                        if (!url.isNullOrEmpty()) {
-                            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                                url = "http://$url"
-                            }
-                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                data = Uri.parse(url)
-                            }
-                            context.startActivity(intent)
-                        }
-                    }
-                }
+                )
             )
-        )
+        }
 
         if (detectedEntity.isNotEmpty()) {
             Text(

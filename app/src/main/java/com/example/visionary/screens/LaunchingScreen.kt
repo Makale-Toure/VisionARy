@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.visionary.R
@@ -102,6 +103,7 @@ fun LaunchingScreen(
                 // Phrase descriptive en bas (animation de déplacement vertical)
                 Text(
                     text = "Votre application de vision par ordinateur",
+                    textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.background.copy(alpha = alpha), // Utiliser la couleur onPrimary du thème
                     modifier = Modifier

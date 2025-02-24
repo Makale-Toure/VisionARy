@@ -11,18 +11,11 @@ import io.github.sceneview.node.CubeNode
 import io.github.sceneview.node.ModelNode
 
 object Utils {
-    /*val posters = mapOf(
-        "Phone number" to "phone.glb"
-    )
 
-    fun getModelForPoster(poster: String): String {
-        val modelName = posters[poster] ?: error("Model not found")
-        return "assets/$modelName"
-    }*/
-
-    fun getModelForPoster(): String {
+    fun getModelForPhone(): String {
         return "armodels/phone.glb"
     }
+
 
     fun createAnchorNode(
         engine: Engine,
@@ -32,7 +25,7 @@ object Utils {
     ): AnchorNode {
         val anchorNode = AnchorNode(engine = engine, anchor = anchor)
         try {
-            val modelPath = getModelForPoster()
+            val modelPath = getModelForPhone()
             Log.d("AR_DEBUG", "Chargement du modèle: $modelPath")
 
             val modelInstance = modelLoader.createInstancedModel(modelPath, 10)
