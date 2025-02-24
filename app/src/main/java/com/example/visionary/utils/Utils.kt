@@ -24,7 +24,7 @@ object Utils {
         return "armodels/phone.glb"
     }
 
-    fun createAnc-horNode(
+    fun createAnchorNode(
         engine: Engine,
         modelLoader: ModelLoader,
         materialLoader: MaterialLoader,
