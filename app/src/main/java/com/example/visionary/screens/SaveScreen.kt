@@ -104,11 +104,11 @@ fun SaveScreen(
                     "Saves",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
+                        .padding(start = 24.dp, top = 24.dp, bottom = 8.dp)
                 )
 
                 Divider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp),
                     color = MaterialTheme.colorScheme.primary,
                     thickness = 3.dp
                 )
@@ -121,7 +121,7 @@ fun SaveScreen(
                 verticalItemSpacing = 8.dp,
                 userScrollEnabled = true, // Assure que le scroll est bien actif
                 contentPadding = PaddingValues(
-                    top = (64 + 8).dp, // Espacement supérieur pour le texte
+                    top = (64 + 24).dp, // Espacement supérieur pour le texte
                     bottom = 16.dp + navbarHeight,
                     start = 16.dp,
                     end = 16.dp

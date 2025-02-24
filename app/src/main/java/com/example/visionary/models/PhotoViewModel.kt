@@ -160,7 +160,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Extraire les entités du texte
-    fun extractEntitiesFromText(text: String, onEntitiesExtracted: (String) -> Unit) {
+    fun extractEntitiesFromText(text: String, onEntitiesExtracted: (List<Pair<String, String>>, String) -> Unit) {
         val entityExtractor = EntityExtraction.getClient(
             EntityExtractorOptions.Builder(EntityExtractorOptions.FRENCH).build()
         )
@@ -170,21 +170,47 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
                 val params = EntityExtractionParams.Builder(text).build()
                 entityExtractor.annotate(params)
                     .addOnSuccessListener { annotations: List<EntityAnnotation> ->
-                        val formattedEntities = formatEntities(annotations)
-                        val remainingText = extractRemainingText(text, annotations)
-                        val finalText = formattedEntities + "\n\n" + remainingText
-                        onEntitiesExtracted(finalText)
+                        val formattedEntities = mutableListOf<Pair<String, String>>()
+                        val entityTextRanges = mutableListOf<IntRange>()
+
+                        annotations.forEach { annotation ->
+                            val entityType = annotation.entities.firstOrNull()?.type ?: -1
+                            val entityLabel = getEntityName(entityType)
+                            val entityValue = annotation.annotatedText
+
+                            if (entityLabel != "Autre") {
+                                formattedEntities.add(Pair(entityLabel, entityValue))
+                                entityTextRanges.add(annotation.start until annotation.end)
+                            }
+                        }
+
+                        // ✅ EXTRAIRE LE TEXTE QUI NE FAIT PAS PARTIE DES ENTITÉS
+                        val remainingText = buildString {
+                            var currentIndex = 0
+                            for (range in entityTextRanges) {
+                                if (currentIndex < range.first) {
+                                    append(text.substring(currentIndex, range.first) + " ")
+                                }
+                                currentIndex = range.last
+                            }
+                            if (currentIndex < text.length) {
+                                append(text.substring(currentIndex))
+                            }
+                        }.trim()
+
+                        onEntitiesExtracted(formattedEntities, remainingText)
                     }
                     .addOnFailureListener { e ->
                         Log.e("EntityExtraction", "Entity annotation failed: $e")
-                        onEntitiesExtracted(text) // Return the original text on failure
+                        onEntitiesExtracted(emptyList(), text) // Retourner tout le texte en cas d'erreur
                     }
             }
             .addOnFailureListener { e ->
                 Log.e("EntityExtraction", "Failed to download model: $e")
-                onEntitiesExtracted(text) // Return the original text on failure
+                onEntitiesExtracted(emptyList(), text) // Retourner tout le texte en cas d'erreur
             }
     }
+
 
     // Formater les entités extraites
     private fun formatEntities(annotations: List<EntityAnnotation>): String {
@@ -285,9 +311,9 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
             if (extractedText.isBlank()) {
                 _detectedText.value = "No text detected."
             } else {
-                extractEntitiesFromText(extractedText) { classifiedText ->
-                    _detectedText.value = classifiedText
-                }
+                //extractEntitiesFromText(extractedText) { classifiedText ->
+                //    _detectedText.value = classifiedText
+                //}
             }
         }
         imageProxy.close()

@@ -23,6 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +49,7 @@ fun NavScreen2(modifier: Modifier = Modifier) {
     val viewModel: PhotoViewModel = viewModel()
     val context = LocalContext.current
 
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = { BottomNavbar(navController) }
@@ -66,7 +69,7 @@ fun NavScreen2(modifier: Modifier = Modifier) {
             }
 
             composable("ar") {
-                ARScreen(
+                ARScreen2(
                     onBack = { navController.popBackStack() },
                 )
             }
@@ -97,6 +100,8 @@ fun NavScreen2(modifier: Modifier = Modifier) {
 
 @Composable
 fun BottomNavbar(navController: NavController) {
+
+    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
     // List of navigation items
     val navItems = listOf(
         NavItem(label = "Home", icon = R.drawable.ic_photo, route = "home"),
@@ -104,14 +109,21 @@ fun BottomNavbar(navController: NavController) {
     )
 
     val currentRoute = currentRoute(navController)
+
+
+
     NavigationBar (
         modifier = Modifier
             .fillMaxHeight(0.1f) // Hauteur de la barre
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(0.dp)
-            )
+            .drawBehind {
+                drawLine(
+                    color = borderColor,
+                    start = Offset(0f, 0f), // Départ de la ligne en haut à gauche
+                    end = Offset(size.width, 0f), // Fin de la ligne en haut à droite
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+
             .padding(top = 1.dp),
         containerColor = MaterialTheme.colorScheme.background, // Couleur de fond de la barre
         contentColor = MaterialTheme.colorScheme.onBackground // Couleur par défaut du contenu
@@ -123,13 +135,15 @@ fun BottomNavbar(navController: NavController) {
                 else -> false
             }
             // On ajoute du séparateur entre les icônes
-            Divider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                modifier = Modifier
-                    .padding(top = 16.dp, bottom = 16.dp)
-                    .height(70.dp)
-                    .width(1.dp)
-            )
+            if (navItem.route != navItems.first().route) {
+                Divider(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(64.dp)
+                        .padding(top = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                )
+            }
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {

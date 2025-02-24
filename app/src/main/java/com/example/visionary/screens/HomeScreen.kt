@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -85,77 +87,77 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        FloatingActionButton(
-
-            onClick = {
-                // Code pour l'action du bouton
-                takePhoto(
-                    context,
-                    controller = imageCaptureController
-                ) { bitmap ->
-                    capturedBitmap = bitmap
-                    showConfirmationDialog = true
-                    vibratePhoto(context)
-                }
-
-            },
+// 📸 Bouton pour prendre une photo
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter) // Aligner le bouton en bas à droite
-                .width(200.dp) // Largeur du bouton
-                .height(56.dp) // Hauteur du bouton
-                .padding(bottom = 16.dp)
-                .border(
-                    4.dp,
-                    MaterialTheme.colorScheme.primary,
-                    MaterialTheme.shapes.extraLarge
-                ), // Marge du bouton
-            containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
-            contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
-            shape = MaterialTheme.shapes.extraLarge
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp) // ✅ Augmente l'espacement sans affecter la couleur de fond
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.radio_button_checked_32),
-                    contentDescription = "Take a photo", // Accesibilité pour l'icône
-                    tint = MaterialTheme.colorScheme.onBackground // Icône en onBackground
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    "Take a photo",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
-                )
+            FloatingActionButton(
+                onClick = {
+                    takePhoto(context, imageCaptureController) { bitmap ->
+                        capturedBitmap = bitmap
+                        showConfirmationDialog = true
+                        vibratePhoto(context)
+                    }
+                },
+                modifier = Modifier
+                    .size(200.dp, 56.dp) // ✅ Assure que le fond couvre bien le bouton
+                    .border(
+                        3.dp,
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.shapes.extraLarge
+                    ),
+                containerColor = MaterialTheme.colorScheme.background, // ✅ Fond correctement appliqué
+                contentColor = MaterialTheme.colorScheme.onBackground,
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.radio_button_checked_32),
+                        contentDescription = "Take a photo",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Take a photo",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
-        // Bouton pour aller à la page AR
-        FloatingActionButton(
-            onClick = {
-                imageCaptureController.unbind()
-                onNavigateToAR()
-            },
+
+// 🕶️ Bouton pour aller à la page AR
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd) // Aligner le bouton en bas à droite
-                .width(60.dp) // Largeur du bouton
-                .height(60.dp) // Hauteur du bouton
-                .padding(bottom = 16.dp, end = 16.dp)
-                .border(
-                    4.dp,
-                    MaterialTheme.colorScheme.primary,
-                    MaterialTheme.shapes.extraLarge
-                ), // Marge du bouton
-            containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
-            contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
-            shape = MaterialTheme.shapes.extraLarge
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 32.dp, end = 16.dp) // ✅ Déplace correctement sans affecter le fond
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            FloatingActionButton(
+                onClick = {
+                    imageCaptureController.unbind()
+                    onNavigateToAR()
+                },
+                modifier = Modifier
+                    .size(56.dp) // ✅ Assure que le fond recouvre le bouton
+                    .border(
+                        3.dp,
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.shapes.extraLarge
+                    ),
+                containerColor = MaterialTheme.colorScheme.background, // ✅ Fond correctement appliqué
+                contentColor = MaterialTheme.colorScheme.onBackground,
+                shape = CircleShape
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.ar_icon),
                     contentDescription = "Aller à la page AR",
                     tint = MaterialTheme.colorScheme.onBackground
                 )
             }
-
         }
+
 
         // Afficher le Dialog de confirmation si nécessaire
         if (showConfirmationDialog && capturedBitmap != null) {
