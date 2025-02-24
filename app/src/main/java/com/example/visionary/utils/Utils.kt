@@ -16,8 +16,7 @@ object Utils {
         return "armodels/phone.glb"
     }
 
-
-    fun createAnchorNode(
+    fun createAnchorNodePhone(
         engine: Engine,
         modelLoader: ModelLoader,
         materialLoader: MaterialLoader,
@@ -48,11 +47,6 @@ object Utils {
             modelNode.addChildNode(boundingBox)
             anchorNode.addChildNode(modelNode)
 
-            listOf(modelNode, anchorNode).forEach {
-                it.onEditingChanged = { editingTransforms ->
-                    boundingBox.isVisible = editingTransforms.isNotEmpty()
-                }
-            }
         }catch (e: Exception){
             Log.e("AR_ERROR", "Erreur lors du chargement du modèle", e)
         }

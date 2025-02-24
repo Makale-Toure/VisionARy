@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +48,7 @@ import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.arcore.createAnchorOrNull
 import io.github.sceneview.ar.arcore.isValid
 import io.github.sceneview.ar.rememberARCameraNode
+import io.github.sceneview.math.lerp
 import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberCollisionSystem
@@ -64,10 +66,9 @@ import kotlinx.coroutines.delay
 fun ARScreen2(
     onBack: () -> Unit,
 ) {
+
     val context = LocalContext.current
     val viewModel = viewModel<PhotoViewModel>()
-    var countdown by remember { mutableStateOf(10) }
-    var isCountingDown by remember { mutableStateOf(false) }
 
 
     // Initialisation du moteur AR
@@ -81,9 +82,6 @@ fun ARScreen2(
     val planeRenderer = remember {
         mutableStateOf(true)
     }
-    val modelInstance = remember {
-        mutableListOf<ModelInstance>()
-    }
     val trackingFailureReason = remember {
         mutableStateOf<TrackingFailureReason?>(null)
     }
@@ -94,12 +92,14 @@ fun ARScreen2(
     // États pour l'analyse d'image
     var isAnalyzing by remember { mutableStateOf(false) }
 
+    // Configuration du contrôleur de la caméra
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
         }
     }
 
+    // Analyse de l'image
     LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
@@ -116,19 +116,20 @@ fun ARScreen2(
 
 
     Box(modifier = Modifier.fillMaxSize()) {
+
+        // Affichage de la preview de la caméra pendant l'analyse
         if(isAnalyzing){
             CameraPreview(
                 controller = cameraController,
                 modifier = Modifier.fillMaxSize()
             )
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize()
             ){
                 Text(
-                    text = "Hold the position for few seconds",
+                    text = "Analyse en cours...",
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -136,16 +137,18 @@ fun ARScreen2(
                             MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                             shape = MaterialTheme.shapes.medium
                         )
-                        .padding(16.dp),
-                    style = MaterialTheme.typography.titleLarge,
+                        .padding(12.dp),
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
         }
 
         val detectedEntity by viewModel.detectedText.collectAsState()
 
+        // Affichage de la scène d'AR une fois l'analyse terminée
         if (!isAnalyzing){
             ARScene(
+                // Initialisation de la scène AR
                 modifier = Modifier.fillMaxSize(),
                 childNodes = childNodes,
                 engine = engine,
@@ -161,6 +164,8 @@ fun ARScreen2(
                 onSessionUpdated = { _, updatedFrame ->
                     frame.value = updatedFrame
                 },
+
+                // Configuration des paramètres de la session AR
                 sessionConfiguration = { session, config ->
                     config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
                         true -> Config.DepthMode.AUTOMATIC
@@ -170,7 +175,9 @@ fun ARScreen2(
                     config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
                 },
 
+                // Gestion des interactions de l'utilisateur
                 onGestureListener = rememberOnGestureListener(
+                    // Gestion du clic simple
                     onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
                         if(node is ModelNode) {
                             if (detectedEntity.contains("Phone number")) {
@@ -181,7 +188,9 @@ fun ARScreen2(
                                     ?.replace(
                                         "\\s".toRegex(),
                                         ""
-                                    ) // Supprimer les espaces // numéro random: "+33612345678"
+                                    ) // Supprimer les espaces
+
+                                // Ouverture de l'application d'appel
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
                                     data = Uri.parse("tel:$phoneNumber")
                                 }
@@ -192,7 +201,7 @@ fun ARScreen2(
                             val hitTestResult = frame.value?.hitTest(e.x, e.y)
                             hitTestResult?.firstOrNull { it.isValid(depthPoint = false, point = false) }
                                 ?.createAnchorOrNull()?.let {
-                                    val nodeModel = Utils.createAnchorNode(
+                                    val nodeModel = Utils.createAnchorNodePhone(
                                         engine = engine,
                                         modelLoader = modelLoader,
                                         materialLoader = materialLoader,
@@ -201,15 +210,36 @@ fun ARScreen2(
                                     childNodes += nodeModel
                                 }
                         }
+                    },
+
+                    // Gestion de la rotation d'un modèle
+                    onRotate = { _, _, node: Node? ->
+                        node?.let {
+                            if (it is ModelNode) {
+                                it.rotation = it.rotation
+                            }
+                        }
+                    },
+
+                    // Gestion du zoom
+                    onScale = { detector, _, node: Node? ->
+                        node?.let {
+                            if (it is ModelNode) {
+                                val scaleFactor = detector.scaleFactor
+                                val newScale = it.scale * scaleFactor
+                                it.scale = lerp(it.scale,newScale, 0.1f) // Smooth transition
+                            }
+                        }
                     }
                 )
             )
         }
 
+        // Affichage du texte détecté
         if (detectedEntity.isNotEmpty()) {
             Text(
                 detectedEntity,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = Color.Transparent,
                 modifier = Modifier
                     .padding(16.dp),
                 style = MaterialTheme.typography.bodyLarge
@@ -247,7 +277,7 @@ fun ARScreen2(
                 Text(
                     "Display AR",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground // Texte en onBackground
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
