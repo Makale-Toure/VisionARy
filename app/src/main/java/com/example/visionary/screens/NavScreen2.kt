@@ -2,10 +2,13 @@ package com.example.visionary.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,8 +54,11 @@ fun NavScreen2(modifier: Modifier = Modifier) {
 
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
-        bottomBar = { BottomNavbar(navController) }
+        modifier = modifier
+            .fillMaxSize()
+            .imePadding(),
+        bottomBar = { BottomNavbar(navController) },
+        contentWindowInsets = WindowInsets.navigationBars
     ) { innerPadding ->
         NavHost(
             navController = navController,

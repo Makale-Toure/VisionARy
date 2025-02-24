@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -52,6 +53,7 @@ fun ConfirmationDialog(
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(16.dp) // Espacement interne
+
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

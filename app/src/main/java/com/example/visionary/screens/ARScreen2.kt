@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -247,6 +248,7 @@ fun ARScreen2(
         }
 
         // Bouton pour démarrer l'analyse
+// 📌 Bouton pour démarrer l'analyse
         FloatingActionButton(
             onClick = {
                 if (!isAnalyzing) {
@@ -255,16 +257,15 @@ fun ARScreen2(
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .width(200.dp)
-                .height(56.dp)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 32.dp) // ✅ Espacement augmenté
+                .size(200.dp, 56.dp) // ✅ Remplace width/height pour assurer un fond correct
                 .border(
-                    4.dp,
+                    3.dp, // ✅ Bordure réduite
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.shapes.extraLarge
                 ),
             containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
+            contentColor = MaterialTheme.colorScheme.onBackground,
             shape = MaterialTheme.shapes.extraLarge,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -282,28 +283,31 @@ fun ARScreen2(
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                onBack()
-            },
+// Bouton de retour
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomStart) // Aligner le bouton en bas à droite
-                .width(60.dp) // Largeur du bouton
-                .height(60.dp) // Hauteur du bouton
-                .padding(bottom = 16.dp, start = 16.dp)
-                .border(
-                    4.dp,
-                    MaterialTheme.colorScheme.primary,
-                    MaterialTheme.shapes.extraLarge
-                ), // Marge du bouton
-            containerColor = MaterialTheme.colorScheme.background, // Fond du bouton
-            contentColor = MaterialTheme.colorScheme.onBackground, // Couleur du texte et de l'icône
-            shape = MaterialTheme.shapes.extraLarge
+                .align(Alignment.BottomStart)
+                .padding(bottom = 32.dp, start = 16.dp) // Espacement augmenté
         ) {
-            Icon(
-                painter = painterResource(R.drawable.arrow_back_24px), // Icône de retour
-                contentDescription = "Back"
-            )
+            FloatingActionButton(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .size(56.dp) // Remplace width/height pour assurer un fond correct
+                    .border(
+                        3.dp, // Bordure réduite
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.shapes.extraLarge
+                    ),
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_back_24px),
+                    contentDescription = "Back"
+                )
+            }
         }
+
     }
 }
