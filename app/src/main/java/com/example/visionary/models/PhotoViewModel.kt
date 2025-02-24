@@ -39,6 +39,9 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 data class SavedImage (
@@ -57,9 +60,36 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     private val _detectedText = MutableStateFlow("")
     val detectedText: StateFlow<String> = _detectedText.asStateFlow()
 
+    private val _photoDateTime = MutableStateFlow<Pair<String, String>?>(null)
+    val photoDateTime: StateFlow<Pair<String, String>?> = _photoDateTime.asStateFlow()
+
+
     // Initialisation
     init {
         refreshImages()
+    }
+
+    fun loadPhotoDateTime(filename: String) {
+        _photoDateTime.value = extractDateTimeFromFilename(filename)
+    }
+
+
+    fun extractDateTimeFromFilename(filename: String): Pair<String, String>? {
+        val regex = Regex("""(\d{13})""") // ✅ Détecte un timestamp UNIX à 13 chiffres
+        val matchResult = regex.find(filename)
+
+        return matchResult?.let {
+            val timestamp = it.value.toLongOrNull() ?: return null
+            val date = Date(timestamp)
+            val formatDate = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()) // ✅ Format sans année ni secondes
+            val formattedDate = formatDate.format(date)
+
+            val parts = formattedDate.split(" ")
+            if (parts.size == 2) {
+                return Pair(parts[0], parts[1]) // 📆 Date et ⏰ Heure séparées
+            }
+            null
+        }
     }
 
     fun refreshImages() {

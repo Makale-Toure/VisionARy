@@ -37,6 +37,7 @@ fun InformationScreen(
 ) {
     val viewModel: PhotoViewModel = viewModel()
     val savedImages by viewModel.savedImages.collectAsState()
+    val photoDateTime by viewModel.photoDateTime.collectAsState()
 
     // ✅ Trouver l'image sélectionnée
     val selectedImage = savedImages.find { it.id == savedImageId } ?: savedImages.lastOrNull()
@@ -68,6 +69,9 @@ fun InformationScreen(
                     remainingText = nonEntityText
                 }
             }
+        }
+        selectedImage?.let {
+            viewModel.loadPhotoDateTime(it.id) // 📥 Extraire la date et l’heure
         }
     }
 
@@ -111,6 +115,28 @@ fun InformationScreen(
                         .padding(8.dp),
                     contentAlignment = Alignment.TopEnd // ✅ Alignement à droite
                 ) {
+                    if (photoDateTime != null) {
+                        val (date, time) = photoDateTime!!
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "📅 $date",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "⏰ $time",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = {
                             viewModel.deleteImage(navController.context, selectedImage.id)
