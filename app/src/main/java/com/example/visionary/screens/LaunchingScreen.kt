@@ -31,75 +31,76 @@ import com.example.visionary.R
 import com.example.visionary.ui.theme.VisionARyTheme
 import kotlinx.coroutines.delay
 
+// Lauching screen with animations for the app launch
 @Composable
 fun LaunchingScreen(
-    onLaunchingComplete: () -> Unit // Callback pour signaler la fin de l'écran de lancement
+    onLaunchingComplete: () -> Unit
 ) {
     VisionARyTheme {
         var visible by remember { mutableStateOf(false) }
         var scale by remember { mutableFloatStateOf(0f) }
         var offsetY by remember { mutableFloatStateOf(100f) }
-        var isClosing by remember { mutableStateOf(false) } // Suivi de l'état de fermeture
+        var isClosing by remember { mutableStateOf(false) }
 
-        // Animation fluide pour la fermeture
+        // Animation de sortie
         val exitAnimation by animateFloatAsState(
             targetValue = if (isClosing) 0f else 1f,
-            animationSpec = tween(durationMillis = 500), // Transition animée sur 500ms
+            animationSpec = tween(durationMillis = 500),
             label = "exitAnimation"
         )
 
-        // Animation de fondu
+        // Fade animation
         val alpha by animateFloatAsState(
             targetValue = if (visible) 1f else 0f,
             animationSpec = tween(durationMillis = 1000),
             label = "alphaAnimation"
         )
 
-        // Animation de zoom
+        // Zoom animation
         val scaleAnimated by animateFloatAsState(
             targetValue = scale,
             animationSpec = tween(durationMillis = 1000),
             label = "scaleAnimation"
         )
 
-        // Animation de déplacement vertical
+        // Vertical animation
         val offsetYAnimated by animateFloatAsState(
             targetValue = offsetY,
             animationSpec = tween(durationMillis = 1000),
             label = "offsetYAnimation"
         )
 
-        // Déclenche l'animation de fermeture avec un délai avant navigation
+        // Function to close the screen properly
         LaunchedEffect(isClosing) {
             if (isClosing) {
-                delay(500) // Attente que l'animation se termine
-                onLaunchingComplete() // Naviguer après l'animation
+                delay(500)
+                onLaunchingComplete() // Navigate to the next screen
             }
         }
 
-        // Fonction pour fermer l'écran proprement
+        // Function to close the screen
         fun closeScreen() {
-            isClosing = true // Déclenche l'animation de sortie
+            isClosing = true
         }
 
-        //  Démarrer l'animation d'entrée et lancer la fermeture après 3s
+        // Start the animations
         LaunchedEffect(Unit) {
-            delay(500) // Petit délai avant l'animation
+            delay(500)
             visible = true
             scale = 1f
             offsetY = 0f
-            delay(3000) // Attente avant de quitter automatiquement
+            delay(3000) // Wait for 3 seconds
             closeScreen()
         }
 
-        // Contenu de la page avec animation d'entrée et de sortie
+        // Content of the launching screen
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primary)
                 .graphicsLayer(
-                    alpha = exitAnimation, // Animation fluide de fermeture
-                    scaleX = exitAnimation, // Zoom-out progressif
+                    alpha = exitAnimation,
+                    scaleX = exitAnimation,
                     scaleY = exitAnimation
                 ),
             contentAlignment = Alignment.Center
@@ -109,7 +110,7 @@ fun LaunchingScreen(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Nom de l'application avec animation de fondu
+                // Name of the app
                 Text(
                     text = "VisionARy",
                     style = MaterialTheme.typography.displayLarge.copy(
@@ -120,7 +121,7 @@ fun LaunchingScreen(
                     modifier = Modifier.padding(16.dp)
                 )
 
-                // Logo avec animation de zoom
+                // Logo with animations
                 Image(
                     painter = painterResource(id = R.drawable.ic_logo),
                     contentDescription = "Logo de l'application",
@@ -129,7 +130,7 @@ fun LaunchingScreen(
                         .graphicsLayer(scaleX = scaleAnimated, scaleY = scaleAnimated)
                 )
 
-                // Slogan animé
+                // Description of the app
                 Text(
                     text = "Know better the world around you and make it easier",
                     textAlign = TextAlign.Center,

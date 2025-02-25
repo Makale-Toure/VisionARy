@@ -1,7 +1,6 @@
 package com.example.visionary.models
 
 import android.app.Application
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,47 +8,40 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.net.Uri
-import android.os.Build
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.nl.entityextraction.Entity
 import com.google.mlkit.nl.entityextraction.EntityAnnotation
 import com.google.mlkit.nl.entityextraction.EntityExtraction
 import com.google.mlkit.nl.entityextraction.EntityExtractionParams
-import com.google.mlkit.nl.entityextraction.EntityExtractor
 import com.google.mlkit.nl.entityextraction.EntityExtractorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
+// Data class for a saved image
 data class SavedImage (
-    val id: String, // Identifiant unique
+    val id: String, // Image ID (filename) timestamp
     val bitmap: Bitmap, // Image bitmap
-    val extractedText: String
+    val extractedText: String // Extracted text from the image
 )
 
+// View model for the photo screen
 class PhotoViewModel(application: Application) : AndroidViewModel(application) {
 
     // List of saved images
@@ -60,6 +52,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     private val _detectedText = MutableStateFlow("")
     val detectedText: StateFlow<String> = _detectedText.asStateFlow()
 
+    // Date and time of the photo
     private val _photoDateTime = MutableStateFlow<Pair<String, String>?>(null)
     val photoDateTime: StateFlow<Pair<String, String>?> = _photoDateTime.asStateFlow()
 
@@ -69,11 +62,12 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         refreshImages()
     }
 
+    // Function to load the date and time from a photo filename
     fun loadPhotoDateTime(filename: String) {
         _photoDateTime.value = extractDateTimeFromFilename(filename)
     }
 
-
+    // Function to extract the date and time from a filename
     fun extractDateTimeFromFilename(filename: String): Pair<String, String>? {
         val regex = Regex("""(\d{13})""") // ✅ Détecte un timestamp UNIX à 13 chiffres
         val matchResult = regex.find(filename)
@@ -92,6 +86,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Refresh the list of saved images
     fun refreshImages() {
         viewModelScope.launch {
             _savedImages.value = loadSavedImagesFromStorage(getApplication()) // ✅ Recharge toutes les images depuis le stockage
@@ -105,12 +100,6 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         _savedImages.value += savedImage
     }
 
-    // Delete a saved image by ID
-    // This function will remove a saved image from the savedImages list
-    fun deleteSavedImage(imageId: String) {
-        _savedImages.value = _savedImages.value.filter { it.id != imageId }
-    }
-
     // Callback for when a photo is taken
     // This function will save the photo to storage and extract text from it
     fun onPhotoTaken(context: Context, bitmap: Bitmap) {
@@ -119,7 +108,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
                 val filename = "${System.currentTimeMillis()}.jpg"
                 val file = saveBitmapToStorage(context, bitmap, filename)
                 if (file != null) {
-                    // Extraction du texte de l'image après capture
+                    // Extract text from the image and save it
                     extractTextFromImage(bitmap) { extractedText ->
                         val savedImage = SavedImage(
                             id = file.nameWithoutExtension,
@@ -189,7 +178,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return emptyList()
     }
 
-    // Extraire les entités du texte
+    // Detect entities from extracted text
     fun extractEntitiesFromText(text: String, onEntitiesExtracted: (List<Pair<String, String>>, String) -> Unit) {
         val entityExtractor = EntityExtraction.getClient(
             EntityExtractorOptions.Builder(EntityExtractorOptions.FRENCH).build()
@@ -214,7 +203,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         }
 
-                        // ✅ EXTRAIRE LE TEXTE QUI NE FAIT PAS PARTIE DES ENTITÉS
+                        // Extract the remaining text after entity annotation
                         val remainingText = buildString {
                             var currentIndex = 0
                             for (range in entityTextRanges) {
@@ -232,45 +221,18 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     .addOnFailureListener { e ->
                         Log.e("EntityExtraction", "Entity annotation failed: $e")
-                        onEntitiesExtracted(emptyList(), text) // Retourner tout le texte en cas d'erreur
+                        onEntitiesExtracted(emptyList(), text) // Return the entire text in case of error
                     }
             }
             .addOnFailureListener { e ->
                 Log.e("EntityExtraction", "Failed to download model: $e")
-                onEntitiesExtracted(emptyList(), text) // Retourner tout le texte en cas d'erreur
+                onEntitiesExtracted(emptyList(), text)
             }
     }
 
 
-    // Formater les entités extraites
-    private fun formatEntities(annotations: List<EntityAnnotation>): String {
-        return annotations.joinToString("\n") { annotation ->
-            val entityName = getEntityName(annotation.entities.firstOrNull()?.type ?: -1)
-            val annotatedText = annotation.annotatedText
-            "$entityName: $annotatedText"
-        }
-    }
-
-    // Extraire le texte restant après l'annotation des entités
-    private fun extractRemainingText(text: String, annotations: List<EntityAnnotation>): String {
-        val stringBuilder = StringBuilder()
-        var currentIndex = 0
-
-        annotations.forEach { annotation ->
-            if (currentIndex < annotation.start) {
-                stringBuilder.append(text.substring(currentIndex, annotation.start))
-            }
-            currentIndex = annotation.end
-        }
-
-        if (currentIndex < text.length) {
-            stringBuilder.append(text.substring(currentIndex))
-        }
-
-        return stringBuilder.toString().trim()
-    }
-
-    // Obtenir le nom de l'entité en fonction de son type
+    // Get the entity name based on the entity type
+    // Returns the entity name as a string
     private fun getEntityName(entityType: Int): String {
         return when (entityType) {
             Entity.TYPE_ADDRESS -> "Address"
@@ -284,14 +246,15 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Supprimer une image par ID
+    // Delete an image from storage
+    // This function will delete the image file from storage and remove it from the saved images list
     fun deleteImage(context: Context, imageId: String) {
         viewModelScope.launch {
             val imageFolder = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "VisionARyImages")
             val fileToDelete = imageFolder.listFiles()?.find { it.nameWithoutExtension == imageId }
 
             if (fileToDelete?.delete() == true) {
-                // ✅ Supprime l'image de la liste immédiatement
+                // Remove the image from the saved images list
                 _savedImages.value = _savedImages.value.filter { it.id != imageId }
                 Log.d("PhotoViewModel", "Image supprimée : ${fileToDelete.name}")
             } else {
@@ -301,12 +264,8 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    // Réinitialiser le texte détecté
-    fun clearDetectedText() {
-        _detectedText.value = ""
-    }
-
     // Conversion de ImageProxy en Bitmap (pour les images de la caméra)
+    // Convert an ImageProxy object to a Bitmap
     @OptIn(ExperimentalGetImage::class)
     fun ImageProxy.toBitmap(): Bitmap {
         val image = this.image ?: throw IllegalStateException("Image is null")
@@ -334,6 +293,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
+    // Extract entities from text and return them as a map
     fun extractEntitiesFromTextAsMap(text: String, onEntitiesExtracted: (Map<String, String>) -> Unit) {
         val entityExtractor = EntityExtraction.getClient(
             EntityExtractorOptions.Builder(EntityExtractorOptions.FRENCH).build()
@@ -362,7 +322,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-    // Analyser une image depuis un ImageProxy (comme pour la caméra)
+    // Analyze an image from the camera preview and extract text and entities
     fun analyzeImage(imageProxy: ImageProxy) {
         val bitmap = imageProxy.toBitmap()
         extractTextFromImage(bitmap) { extractedText ->

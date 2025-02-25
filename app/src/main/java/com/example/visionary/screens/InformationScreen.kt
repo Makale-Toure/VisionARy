@@ -2,17 +2,34 @@ package com.example.visionary.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,22 +47,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.visionary.models.PhotoViewModel
 
+// Information Screen to display the extracted information from the image
 @Composable
 fun InformationScreen(
     navController: NavController,
     savedImageId: String?
 ) {
+    // Get the view model
     val viewModel: PhotoViewModel = viewModel()
     val savedImages by viewModel.savedImages.collectAsState()
     val photoDateTime by viewModel.photoDateTime.collectAsState()
 
-    // ✅ Trouver l'image sélectionnée
+    // Get the selected image from the saved images list if the saved image ID is provided
     val selectedImage = savedImages.find { it.id == savedImageId } ?: savedImages.lastOrNull()
 
-    // ✅ Ajout du scroll pour la page entière
+    // Scroll state for the column
     val scrollState = rememberScrollState()
 
-    // ✅ État de chargement de l'image et du texte
+    // States for loading
     val isImageLoading = selectedImage?.bitmap == null
     var isTextLoading by remember { mutableStateOf(true) }
     var extractedText by remember { mutableStateOf("") }
@@ -55,7 +74,7 @@ fun InformationScreen(
 
 
 
-    // Extraire le texte à chaque affichage
+    // Extract text from the image when the screen is launched
     LaunchedEffect(selectedImage) {
         if (selectedImage != null) {
             isTextLoading = true
@@ -63,7 +82,7 @@ fun InformationScreen(
                 extractedText = text
                 isTextLoading = false
 
-                // ✅ EXTRACTION DES ENTITÉS ET DU TEXTE NON CLASSÉ
+                // Extract entities from the text
                 viewModel.extractEntitiesFromText(text) { entities, nonEntityText ->
                     extractedEntities = entities
                     remainingText = nonEntityText
@@ -71,7 +90,7 @@ fun InformationScreen(
             }
         }
         selectedImage?.let {
-            viewModel.loadPhotoDateTime(it.id) // 📥 Extraire la date et l’heure
+            viewModel.loadPhotoDateTime(it.id) // Load the photo date and time to display
         }
     }
 
@@ -92,7 +111,7 @@ fun InformationScreen(
                     .align(Alignment.CenterHorizontally)
             )
 
-            // ✅ Loader pour l'image
+            // Loader or image preview
             if (isImageLoading) {
                 Box(
                     modifier = Modifier
@@ -107,13 +126,13 @@ fun InformationScreen(
                     Image(bitmap = bitmap.asImageBitmap(), contentDescription = "Image Preview", modifier = Modifier.fillMaxWidth())
                 }
             }
-            // Bouton de suppression
+            // Date and time of the photo
             if (selectedImage != null) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth() // ✅ Remplit toute la largeur
+                        .fillMaxWidth()
                         .padding(8.dp),
-                    contentAlignment = Alignment.TopEnd // ✅ Alignement à droite
+                    contentAlignment = Alignment.TopEnd
                 ) {
                     if (photoDateTime != null) {
                         val (date, time) = photoDateTime!!
@@ -140,16 +159,16 @@ fun InformationScreen(
                     IconButton(
                         onClick = {
                             viewModel.deleteImage(navController.context, selectedImage.id)
-                            navController.popBackStack("save", false) // Retourner à SaveScreen
+                            navController.popBackStack("save", false) // Navigate back to the Save screen
                         },
                         modifier = Modifier
-                            .size(48.dp) // ✅ Assurer une taille fixe
+                            .size(48.dp)
                             .padding(4.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(48.dp) // ✅ Taille du fond
-                                .background(MaterialTheme.colorScheme.error, shape = CircleShape), // ✅ Fond coloré arrondi
+                                .size(48.dp)
+                                .background(MaterialTheme.colorScheme.error, shape = CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -163,7 +182,7 @@ fun InformationScreen(
             }
 
 
-            // ✅ Divider
+            // Divider
             Divider(
                 modifier = Modifier.padding(vertical = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
@@ -172,13 +191,13 @@ fun InformationScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ✅ Affichage du texte ou d'un loader
+            // Loader or extracted text
             if (isTextLoading) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else {
-                // ✅ Affichage des entités avec style
+                // Display the extracted text
                 if (extractedEntities.isNotEmpty()) {
                     Card(
                         modifier = Modifier
@@ -222,10 +241,10 @@ fun InformationScreen(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent, // ✅ Fond transparent
-                            contentColor = MaterialTheme.colorScheme.primary // ✅ Couleur du texte
+                            containerColor = Color.Transparent,
+                            contentColor = MaterialTheme.colorScheme.primary
                         ),
-                        elevation = ButtonDefaults.buttonElevation(0.dp) // ✅ Supprime l'ombre du bouton
+                        elevation = ButtonDefaults.buttonElevation(0.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
@@ -233,18 +252,18 @@ fun InformationScreen(
                             Icon(
                                 imageVector = if (showRemainingText) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                                 contentDescription = "Icône Voir plus / Voir moins",
-                                tint = MaterialTheme.colorScheme.primary // ✅ Assure la bonne visibilité
+                                tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.width(8.dp)) // ✅ Espace entre l'icône et le texte
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (showRemainingText) "Voir moins" else "Voir plus",
+                                text = if (showRemainingText) "See more" else "See less",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
 
-                    // ✅ Afficher le texte brut seulement si l'utilisateur a cliqué sur "Voir plus"
+                    // Display the remaining text if the user wants to see more
                     if (showRemainingText) {
                         Text(
                             text = remainingText,
@@ -259,7 +278,7 @@ fun InformationScreen(
 
         }
 
-        // ✅ Bouton Retour
+        // Back button
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
