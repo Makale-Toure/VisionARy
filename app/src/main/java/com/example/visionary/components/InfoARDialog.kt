@@ -59,7 +59,7 @@ fun InfoARDialog(onDismiss: () -> Unit) {
                     modifier = Modifier
                         .weight(1f) // Permet de pousser le texte au centre
                         .fillMaxWidth(),
-                    contentAlignment = Alignment.Center // ✅ Centre le texte dans la Box
+                    contentAlignment = Alignment.Center // Centre le texte dans la Box
                 ) {
                     Text(
                         text = "Look for a plane and make the 3D object appear \n"+
