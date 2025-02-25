@@ -17,7 +17,7 @@ object Utils {
     }
 
     fun getModelForWebsite(): String {
-        return "armodels/google_logo.glb"
+        return "armodels/url.glb"
     }
 
     fun createAnchorNodePhone(
