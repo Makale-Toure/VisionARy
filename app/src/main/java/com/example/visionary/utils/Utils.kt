@@ -16,6 +16,10 @@ object Utils {
         return "armodels/phone.glb"
     }
 
+    fun getModelForWebsite(): String {
+        return "armodels/google_logo.glb"
+    }
+
     fun createAnchorNodePhone(
         engine: Engine,
         modelLoader: ModelLoader,
@@ -25,6 +29,43 @@ object Utils {
         val anchorNode = AnchorNode(engine = engine, anchor = anchor)
         try {
             val modelPath = getModelForPhone()
+            Log.d("AR_DEBUG", "Chargement du modèle: $modelPath")
+
+            val modelInstance = modelLoader.createInstancedModel(modelPath, 10)
+
+            val modelNode = ModelNode(
+                modelInstance = modelInstance.first(),
+                scaleToUnits = 0.2f
+            ).apply {
+                isEditable = true
+            }
+            val boundingBox = CubeNode(
+                engine = engine,
+                size = modelNode.extents,
+                center = modelNode.center,
+                materialInstance = materialLoader.createColorInstance(Color.White)
+            ).apply {
+                isVisible = false
+            }
+
+            modelNode.addChildNode(boundingBox)
+            anchorNode.addChildNode(modelNode)
+
+        }catch (e: Exception){
+            Log.e("AR_ERROR", "Erreur lors du chargement du modèle", e)
+        }
+        return anchorNode
+    }
+
+    fun createAnchorNodeWebsite(
+        engine: Engine,
+        modelLoader: ModelLoader,
+        materialLoader: MaterialLoader,
+        anchor: Anchor,
+    ): AnchorNode {
+        val anchorNode = AnchorNode(engine = engine, anchor = anchor)
+        try {
+            val modelPath = getModelForWebsite()
             Log.d("AR_DEBUG", "Chargement du modèle: $modelPath")
 
             val modelInstance = modelLoader.createInstancedModel(modelPath, 10)
