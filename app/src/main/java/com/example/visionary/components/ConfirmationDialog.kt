@@ -4,7 +4,15 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -13,13 +21,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.visionary.R
 
+// Confirmation Dialog for confirming a photo
 @Composable
 fun ConfirmationDialog(
     bitmap: Bitmap,
@@ -29,53 +37,52 @@ fun ConfirmationDialog(
     Dialog(onDismissRequest = onCancel) {
         Box(
             modifier = Modifier
-                .width(400.dp) // Largeur réduite pour une meilleure adaptation
+                .width(400.dp)
                 .height(550.dp)
                 .background(
                     color = MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(16.dp) // Coins arrondis
+                    shape = RoundedCornerShape(16.dp)
                 )
                 .border(
-                    width = 3.dp, // Bordure ajustée
+                    width = 3.dp,
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(16.dp) // Espacement interne
+                .padding(16.dp)
 
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Titre du dialogue
+                // Dialog Title
                 Text(
                     text = stringResource(id = R.string.retake_photo),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 16.dp) // Espacement sous le titre
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Aperçu de la photo
+                // Image Preview
                 Image(
                     bitmap = bitmap.asImageBitmap(),
                     contentDescription = "Photo Preview",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp) // Hauteur ajustée
-                        .clip(RoundedCornerShape(8.dp)) // Coins arrondis pour l'image
-                        .background(MaterialTheme.colorScheme.background) // Fond légèrement transparent
+                        .height(400.dp)
+                        .background(MaterialTheme.colorScheme.background)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp)) // Espacement entre l'image et les boutons
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Boutons de confirmation et d'annulation
+                // Buttons
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp) // Espacement horizontal
+                        .padding(horizontal = 16.dp)
                 ) {
-                    // Bouton Annuler corrigé
+                    // Cancel Button
                     Button(
                         onClick = onCancel,
                         colors = ButtonDefaults.buttonColors(
@@ -83,15 +90,15 @@ fun ConfirmationDialog(
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         modifier = Modifier
-                            .weight(1f) // Répartir l'espace entre les boutons
-                            .padding(end = 8.dp) // Espacement entre les boutons
+                            .weight(1f)
+                            .padding(end = 8.dp)
                             .border(
-                                width = 3.dp, // Bordure ajustée
-                                color = MaterialTheme.colorScheme.error, // Couleur de la bordure
+                                width = 3.dp,
+                                color = MaterialTheme.colorScheme.error,
                                 shape = MaterialTheme.shapes.extraLarge
                             ),
 
-                        shape = MaterialTheme.shapes.extraLarge // Assure une forme bien arrondie
+                        shape = MaterialTheme.shapes.extraLarge
                     ) {
                         Text(
                             text = stringResource(id = R.string.cancel),
@@ -99,7 +106,7 @@ fun ConfirmationDialog(
                         )
                     }
 
-                    // Bouton Confirmer corrigé
+                    // Confirm Button
                     Button(
                         onClick = onConfirm,
                         colors = ButtonDefaults.buttonColors(
@@ -107,14 +114,14 @@ fun ConfirmationDialog(
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         modifier = Modifier
-                            .weight(1f) // Répartir l'espace entre les boutons
-                            .padding(start = 8.dp) // Espacement entre les boutons
+                            .weight(1f)
+                            .padding(start = 8.dp)
                             .border(
-                                width = 3.dp, // Bordure ajustée
-                                color = MaterialTheme.colorScheme.outline, // Couleur de la bordure
+                                width = 3.dp,
+                                color = MaterialTheme.colorScheme.outline,
                                 shape = MaterialTheme.shapes.extraLarge
                             ),
-                        shape = MaterialTheme.shapes.extraLarge // Assure une forme bien arrondie
+                        shape = MaterialTheme.shapes.extraLarge
                     ) {
                         Text(
                             text = stringResource(id = R.string.choosing_photo),

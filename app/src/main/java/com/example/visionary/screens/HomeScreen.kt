@@ -3,7 +3,6 @@ package com.example.visionary.screens
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.net.Uri
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -17,26 +16,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,25 +35,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
 import com.example.visionary.components.ConfirmationDialog
 import com.example.visionary.models.PhotoViewModel
-import com.example.visionary.utils.convertBitmapToString
 
+// Home screen to take a photo
 @Composable
 fun HomeScreen(
     onNavigateToAR: () -> Unit,
-    navController: NavController// ✅ On utilise le ViewModel partagé
+    navController: NavController // Navigation controller to navigate between screens
 ) {
 
+    // Create the ViewModel instance
     val viewModel: PhotoViewModel = viewModel()
-
-    val savedImages by viewModel.savedImages.collectAsState()
-
 
     // Composable function to display the "Main screen"
     val context = LocalContext.current
@@ -87,11 +75,11 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-// 📸 Bouton pour prendre une photo
+        // Floating Action Button to take a photo
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp) // ✅ Augmente l'espacement sans affecter la couleur de fond
+                .padding(bottom = 32.dp)
         ) {
             FloatingActionButton(
                 onClick = {
@@ -102,13 +90,13 @@ fun HomeScreen(
                     }
                 },
                 modifier = Modifier
-                    .size(200.dp, 56.dp) // ✅ Assure que le fond couvre bien le bouton
+                    .size(200.dp, 56.dp)
                     .border(
                         3.dp,
                         MaterialTheme.colorScheme.primary,
                         MaterialTheme.shapes.extraLarge
                     ),
-                containerColor = MaterialTheme.colorScheme.background, // ✅ Fond correctement appliqué
+                containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 shape = MaterialTheme.shapes.extraLarge
             ) {
@@ -128,11 +116,11 @@ fun HomeScreen(
             }
         }
 
-// 🕶️ Bouton pour aller à la page AR
+        // Floating Action Button to navigate to the AR screen
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 32.dp, end = 16.dp) // ✅ Déplace correctement sans affecter le fond
+                .padding(bottom = 32.dp, end = 16.dp)
         ) {
             FloatingActionButton(
                 onClick = {
@@ -140,13 +128,13 @@ fun HomeScreen(
                     onNavigateToAR()
                 },
                 modifier = Modifier
-                    .size(56.dp) // ✅ Assure que le fond recouvre le bouton
+                    .size(56.dp)
                     .border(
                         3.dp,
                         MaterialTheme.colorScheme.primary,
                         MaterialTheme.shapes.extraLarge
                     ),
-                containerColor = MaterialTheme.colorScheme.background, // ✅ Fond correctement appliqué
+                containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 shape = CircleShape
             ) {
@@ -159,7 +147,7 @@ fun HomeScreen(
         }
 
 
-        // Afficher le Dialog de confirmation si nécessaire
+        // Confirmation Dialog to confirm the photo
         if (showConfirmationDialog && capturedBitmap != null) {
             ConfirmationDialog(
                 bitmap = capturedBitmap!!,
@@ -167,10 +155,10 @@ fun HomeScreen(
                     viewModel.onPhotoTaken(context, capturedBitmap!!)
                     showConfirmationDialog = false
 
-                    // Récupérer la dernière image sauvegardée
+                    // Get the last image saved
                     val lastImage = viewModel.savedImages.value.lastOrNull()
 
-                    // Si une image existe, naviguer vers la page d'information
+                    // Navigate to the information screen with the last image
                     lastImage?.let {
                         navController.navigate("information/${null}")
                     }
@@ -234,7 +222,7 @@ private fun takePhoto(
     )
 }
 
-// Function test vibrate
+// Function to test vibration
 fun vibrate(context: Context){
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     val timings: LongArray = longArrayOf(0,100,50, 250)
@@ -246,11 +234,4 @@ fun vibrate(context: Context){
 fun vibratePhoto(context: Context){
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
-}
-
-fun vibrateCancel(context: Context){
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-    val timings: LongArray = longArrayOf(0,100,50, 250)
-    val repeatIndex = -1 // Do not repeat.
-    vibrator?.vibrate(VibrationEffect.createWaveform(timings, repeatIndex))
 }

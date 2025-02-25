@@ -1,7 +1,6 @@
 package com.example.visionary.components
 
-import androidx.compose.ui.graphics.vector.ImageVector
-
+// Data class for the navigation items
 data class NavItem(
     val label: String,
     val icon: Int,
