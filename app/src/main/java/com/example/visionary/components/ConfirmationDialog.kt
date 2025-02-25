@@ -1,35 +1,23 @@
 package com.example.visionary.components
 
-import android.app.Activity
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.example.visionary.R
 
 @Composable
@@ -48,7 +36,7 @@ fun ConfirmationDialog(
                     shape = RoundedCornerShape(16.dp) // Coins arrondis
                 )
                 .border(
-                    width = 3.dp, // ✅ Bordure ajustée
+                    width = 3.dp, // Bordure ajustée
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -59,7 +47,7 @@ fun ConfirmationDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // ✅ Titre du dialogue
+                // Titre du dialogue
                 Text(
                     text = stringResource(id = R.string.retake_photo),
                     style = MaterialTheme.typography.titleMedium,
@@ -67,7 +55,7 @@ fun ConfirmationDialog(
                     modifier = Modifier.padding(bottom = 16.dp) // Espacement sous le titre
                 )
 
-                // ✅ Aperçu de la photo
+                // Aperçu de la photo
                 Image(
                     bitmap = bitmap.asImageBitmap(),
                     contentDescription = "Photo Preview",
@@ -80,14 +68,14 @@ fun ConfirmationDialog(
 
                 Spacer(modifier = Modifier.height(16.dp)) // Espacement entre l'image et les boutons
 
-                // ✅ Boutons de confirmation et d'annulation
+                // Boutons de confirmation et d'annulation
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp) // Espacement horizontal
                 ) {
-                    // ❌ Bouton Annuler corrigé
+                    // Bouton Annuler corrigé
                     Button(
                         onClick = onCancel,
                         colors = ButtonDefaults.buttonColors(
@@ -98,12 +86,12 @@ fun ConfirmationDialog(
                             .weight(1f) // Répartir l'espace entre les boutons
                             .padding(end = 8.dp) // Espacement entre les boutons
                             .border(
-                                width = 3.dp, // ✅ Bordure ajustée
+                                width = 3.dp, // Bordure ajustée
                                 color = MaterialTheme.colorScheme.error, // Couleur de la bordure
                                 shape = MaterialTheme.shapes.extraLarge
                             ),
 
-                        shape = MaterialTheme.shapes.extraLarge // ✅ Assure une forme bien arrondie
+                        shape = MaterialTheme.shapes.extraLarge // Assure une forme bien arrondie
                     ) {
                         Text(
                             text = stringResource(id = R.string.cancel),
@@ -111,7 +99,7 @@ fun ConfirmationDialog(
                         )
                     }
 
-                    // ✅ Bouton Confirmer corrigé
+                    // Bouton Confirmer corrigé
                     Button(
                         onClick = onConfirm,
                         colors = ButtonDefaults.buttonColors(
@@ -122,11 +110,11 @@ fun ConfirmationDialog(
                             .weight(1f) // Répartir l'espace entre les boutons
                             .padding(start = 8.dp) // Espacement entre les boutons
                             .border(
-                                width = 3.dp, // ✅ Bordure ajustée
+                                width = 3.dp, // Bordure ajustée
                                 color = MaterialTheme.colorScheme.outline, // Couleur de la bordure
                                 shape = MaterialTheme.shapes.extraLarge
                             ),
-                        shape = MaterialTheme.shapes.extraLarge // ✅ Assure une forme bien arrondie
+                        shape = MaterialTheme.shapes.extraLarge // Assure une forme bien arrondie
                     ) {
                         Text(
                             text = stringResource(id = R.string.choosing_photo),

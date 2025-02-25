@@ -40,6 +40,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visionary.Camera.CameraPreview
 import com.example.visionary.R
+import com.example.visionary.components.InfoARDialog
 import com.example.visionary.models.PhotoViewModel
 import com.example.visionary.utils.Utils
 import com.google.ar.core.Config
@@ -90,8 +91,9 @@ fun ARScreen2(
         mutableStateOf<Frame?>(null)
     }
 
-    // États pour l'analyse d'image
+    // États pour l'analyse d'image et l'affichage du message d'informations
     var isAnalyzing by remember { mutableStateOf(false) }
+    var showPopup by remember { mutableStateOf(false) }
 
     // Configuration du contrôleur de la caméra
     val cameraController = remember {
@@ -112,6 +114,9 @@ fun ARScreen2(
             delay(3000)
             isAnalyzing = false
             cameraController.clearImageAnalysisAnalyzer()
+
+            showPopup = true
+
         }
     }
 
@@ -130,7 +135,7 @@ fun ARScreen2(
                 modifier = Modifier.fillMaxSize()
             ){
                 Text(
-                    text = "Analyse en cours...",
+                    text = "Analysis in progress...",
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -146,8 +151,13 @@ fun ARScreen2(
 
         val detectedEntity by viewModel.detectedText.collectAsState()
 
+        // Affichage du pop-up après l'analyse
+        if (showPopup) {
+            InfoARDialog { showPopup = false }
+        }
         // Affichage de la scène d'AR une fois l'analyse terminée
         if (!isAnalyzing){
+            // Affichage de la scène AR
             ARScene(
                 // Initialisation de la scène AR
                 modifier = Modifier.fillMaxSize(),
@@ -168,10 +178,11 @@ fun ARScreen2(
 
                 // Configuration des paramètres de la session AR
                 sessionConfiguration = { session, config ->
-                    config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                        true -> Config.DepthMode.AUTOMATIC
-                        false -> Config.DepthMode.DISABLED
-                    }
+                    config.depthMode =
+                        when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                            true -> Config.DepthMode.AUTOMATIC
+                            false -> Config.DepthMode.DISABLED
+                        }
                     config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
                     config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
                 },
@@ -180,7 +191,7 @@ fun ARScreen2(
                 onGestureListener = rememberOnGestureListener(
                     // Gestion du clic simple
                     onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
-                        if(node is ModelNode) {
+                        if (node is ModelNode) {
                             if (detectedEntity.contains("Phone number")) {
                                 val phoneNumberRegex = Regex("""Phone number:\s*([\d\s]+)""")
                                 // Si on clique sur le téléphone, lancer l'appel
@@ -200,9 +211,52 @@ fun ARScreen2(
                         } else {
                             // Création d'un ancrage si aucun modèle n'est détecté sous le clic
                             val hitTestResult = frame.value?.hitTest(e.x, e.y)
-                            hitTestResult?.firstOrNull { it.isValid(depthPoint = false, point = false) }
+                            hitTestResult?.firstOrNull {
+                                it.isValid(
+                                    depthPoint = false,
+                                    point = false
+                                )
+                            }
                                 ?.createAnchorOrNull()?.let {
                                     val nodeModel = Utils.createAnchorNodePhone(
+                                        engine = engine,
+                                        modelLoader = modelLoader,
+                                        materialLoader = materialLoader,
+                                        anchor = it,
+                                    )
+                                    childNodes += nodeModel
+                                }
+                        }
+                    },
+
+                    onDoubleTap = { e: MotionEvent, node: Node? ->
+                        if (node is ModelNode) {
+                            if (detectedEntity.contains("URL")) {
+                                val urlRegex = Regex("""URL:\s*(\S+)""")
+                                var url = urlRegex.find(detectedEntity)?.groupValues?.get(1)
+
+                                if (!url.isNullOrEmpty()) {
+                                    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                                        url = "http://$url"
+                                    }
+                                }
+
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    data = Uri.parse(url)
+                                }
+                                context.startActivity(intent)
+                            }
+                        } else {
+                            // Création d'un ancrage si aucun modèle n'est détecté sous le clic
+                            val hitTestResult = frame.value?.hitTest(e.x, e.y)
+                            hitTestResult?.firstOrNull {
+                                it.isValid(
+                                    depthPoint = false,
+                                    point = false
+                                )
+                            }
+                                ?.createAnchorOrNull()?.let {
+                                    val nodeModel = Utils.createAnchorNodeWebsite(
                                         engine = engine,
                                         modelLoader = modelLoader,
                                         materialLoader = materialLoader,
@@ -228,12 +282,13 @@ fun ARScreen2(
                             if (it is ModelNode) {
                                 val scaleFactor = detector.scaleFactor
                                 val newScale = it.scale * scaleFactor
-                                it.scale = lerp(it.scale,newScale, 0.1f) // Smooth transition
+                                it.scale = lerp(it.scale, newScale, 0.1f) // Smooth transition
                             }
                         }
                     }
                 )
             )
+
         }
 
         // Affichage du texte détecté
@@ -248,7 +303,6 @@ fun ARScreen2(
         }
 
         // Bouton pour démarrer l'analyse
-// 📌 Bouton pour démarrer l'analyse
         FloatingActionButton(
             onClick = {
                 if (!isAnalyzing) {
@@ -257,10 +311,10 @@ fun ARScreen2(
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp) // ✅ Espacement augmenté
-                .size(200.dp, 56.dp) // ✅ Remplace width/height pour assurer un fond correct
+                .padding(bottom = 32.dp)
+                .size(200.dp, 56.dp)
                 .border(
-                    3.dp, // ✅ Bordure réduite
+                    3.dp,
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.shapes.extraLarge
                 ),
@@ -283,18 +337,18 @@ fun ARScreen2(
             }
         }
 
-// Bouton de retour
+        // Bouton de retour
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(bottom = 32.dp, start = 16.dp) // Espacement augmenté
+                .padding(bottom = 32.dp, start = 16.dp)
         ) {
             FloatingActionButton(
                 onClick = { onBack() },
                 modifier = Modifier
-                    .size(56.dp) // Remplace width/height pour assurer un fond correct
+                    .size(56.dp)
                     .border(
-                        3.dp, // Bordure réduite
+                        3.dp,
                         MaterialTheme.colorScheme.primary,
                         MaterialTheme.shapes.extraLarge
                     ),
@@ -308,6 +362,5 @@ fun ARScreen2(
                 )
             }
         }
-
     }
 }
