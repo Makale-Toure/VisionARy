@@ -1,7 +1,6 @@
 package com.example.visionary.screens
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,17 +32,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.visionary.R
 import com.example.visionary.components.NavItem
 import com.example.visionary.models.PhotoViewModel
-import com.example.visionary.utils.convertStringToBitmap
 
+// Navigation screen to navigate between different screens
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NavScreen2(modifier: Modifier = Modifier) {
@@ -52,7 +48,7 @@ fun NavScreen2(modifier: Modifier = Modifier) {
     val viewModel: PhotoViewModel = viewModel()
     val context = LocalContext.current
 
-
+    // Main scaffold containing navigation bar and content
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -60,6 +56,7 @@ fun NavScreen2(modifier: Modifier = Modifier) {
         bottomBar = { BottomNavbar(navController) },
         contentWindowInsets = WindowInsets.navigationBars
     ) { innerPadding ->
+        // Navigation host to navigate between screens
         NavHost(
             navController = navController,
             startDestination = "home",
@@ -97,9 +94,6 @@ fun NavScreen2(modifier: Modifier = Modifier) {
                     savedImageId = savedImageId
                 )
             }
-
-
-
         }
     }
 }
@@ -116,31 +110,29 @@ fun BottomNavbar(navController: NavController) {
 
     val currentRoute = currentRoute(navController)
 
-
-
+    // Bottom navigation bar layout
     NavigationBar (
         modifier = Modifier
-            .fillMaxHeight(0.1f) // Hauteur de la barre
+            .fillMaxHeight(0.1f) // Set navbar height
             .drawBehind {
                 drawLine(
                     color = borderColor,
-                    start = Offset(0f, 0f), // Départ de la ligne en haut à gauche
-                    end = Offset(size.width, 0f), // Fin de la ligne en haut à droite
+                    start = Offset(0f, 0f), // Start line at top left
+                    end = Offset(size.width, 0f), // End line at top right
                     strokeWidth = 1.dp.toPx()
                 )
             }
-
             .padding(top = 1.dp),
-        containerColor = MaterialTheme.colorScheme.background, // Couleur de fond de la barre
-        contentColor = MaterialTheme.colorScheme.onBackground // Couleur par défaut du contenu
+        containerColor = MaterialTheme.colorScheme.background, // Background color
+        contentColor = MaterialTheme.colorScheme.onBackground // Default content color
     ) {
         navItems.forEach {navItem ->
             val isSelected = when (navItem.route) {
-                "home" -> currentRoute == "home" || currentRoute == "ar" // Home est actif sur "ar" également
+                "home" -> currentRoute == "home" || currentRoute == "ar" // Highlight home icon when on home or AR screen
                 "save" -> currentRoute == "save"
                 else -> false
             }
-            // On ajoute du séparateur entre les icônes
+            // Add a separator between navigation items
             if (navItem.route != navItems.first().route) {
                 Divider(
                     modifier = Modifier
@@ -191,45 +183,14 @@ fun BottomNavbar(navController: NavController) {
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurface,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                    indicatorColor = MaterialTheme.colorScheme.secondary // Couleur de l'indicateur actif
+                    indicatorColor = MaterialTheme.colorScheme.secondary // Color of the current indicator
                 )
             )
         }
     }
 }
 
-@SuppressLint("StateFlowValueCalledInComposition")
-@Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex : Int, viewModel: PhotoViewModel, navController: NavController) {
-    val context = LocalContext.current
-    var showARScreen by remember { mutableStateOf(false) }
-
-
-    when(selectedIndex) {
-        0 -> HomeScreen(
-            onNavigateToAR = {
-                showARScreen = true
-            },
-            navController = rememberNavController()
-        )
-        1 -> SaveScreen(
-            modifier = Modifier.fillMaxWidth(),
-            onDeleteImage = { imageId ->
-                viewModel.deleteImage(context, imageId)
-            },
-            navController = rememberNavController()
-        )
-    }
-
-    /*if(showARScreen){
-        ARScreen(
-            onBack = {
-                showARScreen = false
-            }
-        )
-    }*/
-}
-
+// Function to get the current route
 @Composable
 fun currentRoute(navController: NavController): String? {
     val navBackStackEntry by navController.currentBackStackEntryAsState()

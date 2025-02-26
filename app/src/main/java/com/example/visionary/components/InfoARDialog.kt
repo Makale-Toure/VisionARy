@@ -24,9 +24,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
+// Info Dialog for displaying information about AR
 @Composable
 fun InfoARDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
+        // Shape of the dialog
         Box(
             modifier = Modifier
                 .width(300.dp)
@@ -36,7 +38,7 @@ fun InfoARDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(16.dp)
                 )
                 .border(
-                    width = 3.dp, // Bordure ajustée
+                    width = 3.dp,
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -47,19 +49,21 @@ fun InfoARDialog(onDismiss: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
+                // Title of the dialog
                 Text(
                     text = "Analysis completed",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-
+                // Main content with instructions
                 Box(
                     modifier = Modifier
-                        .weight(1f) // Permet de pousser le texte au centre
+                        .weight(1f)
                         .fillMaxWidth(),
-                    contentAlignment = Alignment.Center // Centre le texte dans la Box
+                    contentAlignment = Alignment.Center // Center the text in the box
                 ) {
+                    // Text with instructions
                     Text(
                         text = "Look for a plane and make the 3D object appear \n"+
                                 "With one single tap -> access to the phone \n" +
@@ -72,6 +76,7 @@ fun InfoARDialog(onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Button to dismiss the dialog
                 FloatingActionButton(
                     onClick = onDismiss,
                     modifier = Modifier

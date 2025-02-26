@@ -48,7 +48,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-
+// Save Screen for displaying saved images
 @Composable
 fun SaveScreen(
     modifier: Modifier = Modifier,
@@ -58,14 +58,15 @@ fun SaveScreen(
     val viewModel: PhotoViewModel = viewModel()
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val navbarHeight = screenHeight * 0.1f
+    val navbarHeight = screenHeight * 0.1f // Compute the height of the navbar
     val context = LocalContext.current
 
+    // Refresh the images when the screen is launched
     LaunchedEffect(navController) { viewModel.refreshImages() }
 
     val savedImages by viewModel.savedImages.collectAsState()
 
-
+    // Save the bitmap to the cache directory
     suspend fun saveBitmapToCache(bitmap: Bitmap, id: String): Uri? {
         return withContext(Dispatchers.IO) {
             val cacheDir = context.cacheDir
@@ -83,6 +84,7 @@ fun SaveScreen(
         }
     }
 
+    // Display a message if there are no saved images
     if (savedImages.isEmpty()) {
         Box(
             modifier = modifier.offset(y = 100.dp),
@@ -92,14 +94,14 @@ fun SaveScreen(
         }
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Conteneur de texte et des images
+            // Text and image container
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background)
                     .zIndex(1f)
             ) {
-                // Titre avec zIndex pour le placer au-dessus des images
+                // Title with z-index to ensure it is above the images
                 Text(
                     "Saves",
                     style = MaterialTheme.typography.titleLarge,
@@ -114,14 +116,14 @@ fun SaveScreen(
                 )
             }
 
-            // Liste d'images avec un espace supérieur pour le texte
+            // List of saved images with their title
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalItemSpacing = 8.dp,
-                userScrollEnabled = true, // Assure que le scroll est bien actif
+                userScrollEnabled = true, // Make the list scrollable
                 contentPadding = PaddingValues(
-                    top = (64 + 24).dp, // Espacement supérieur pour le texte
+                    top = (64 + 24).dp, // Start below the title
                     bottom = 16.dp + navbarHeight,
                     start = 16.dp,
                     end = 16.dp
@@ -132,7 +134,7 @@ fun SaveScreen(
                     var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
                     var isLoading by remember { mutableStateOf(true) }
 
-                    // Charger l'image en arrière-plan
+                    // Load the image from the cache directory
                     LaunchedEffect(savedImage.id) {
                         imageUri = saveBitmapToCache(savedImage.bitmap, savedImage.id)
                         isLoading = false
@@ -145,7 +147,7 @@ fun SaveScreen(
                             .clickable { navController.navigate("information/${savedImage.id}") }
                     ) {
                         if (isLoading) {
-                            // Placeholder de chargement
+                            // Loading of placeholder
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -160,7 +162,7 @@ fun SaveScreen(
                                     model = ImageRequest.Builder(LocalContext.current)
                                         .data(uri)
                                         .crossfade(true)
-                                        .size(200) // Charge une image optimisée
+                                        .size(200) // Load the image with a size of 200x200
                                         .build(),
                                     contentDescription = null,
                                     modifier = Modifier.fillMaxSize(),

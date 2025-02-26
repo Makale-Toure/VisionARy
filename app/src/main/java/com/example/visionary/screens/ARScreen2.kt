@@ -63,7 +63,7 @@ import io.github.sceneview.rememberView
 import io.github.sceneview.node.Node
 import kotlinx.coroutines.delay
 
-
+// AR Screen to analyze the poster and display the AR scene
 @Composable
 fun ARScreen2(
     onBack: () -> Unit,
@@ -73,7 +73,7 @@ fun ARScreen2(
     val viewModel = viewModel<PhotoViewModel>()
 
 
-    // Initialisation du moteur AR
+    // Initialisation of the AR scene parameters
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine = engine)
     val materialLoader = rememberMaterialLoader(engine = engine)
@@ -91,18 +91,18 @@ fun ARScreen2(
         mutableStateOf<Frame?>(null)
     }
 
-    // États pour l'analyse d'image et l'affichage du message d'informations
+    // State to manage the analysis of the image and the display of the information pop-up
     var isAnalyzing by remember { mutableStateOf(false) }
     var showPopup by remember { mutableStateOf(false) }
 
-    // Configuration du contrôleur de la caméra
+    // Create and configure the Camera controller
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
         }
     }
 
-    // Analyse de l'image
+    // Analysis of the image
     LaunchedEffect(isAnalyzing) {
         if (isAnalyzing) {
             val imageAnalyzer = ImageAnalysis.Analyzer { imageProxy ->
@@ -123,7 +123,7 @@ fun ARScreen2(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Affichage de la preview de la caméra pendant l'analyse
+        // Display the camera preview during the analysis
         if(isAnalyzing){
             CameraPreview(
                 controller = cameraController,
@@ -151,15 +151,13 @@ fun ARScreen2(
 
         val detectedEntity by viewModel.detectedText.collectAsState()
 
-        // Affichage du pop-up après l'analyse
+        // Display the information pop-up once the analysis is complete
         if (showPopup) {
             InfoARDialog { showPopup = false }
         }
-        // Affichage de la scène d'AR une fois l'analyse terminée
+        // Display the AR scene
         if (!isAnalyzing){
-            // Affichage de la scène AR
             ARScene(
-                // Initialisation de la scène AR
                 modifier = Modifier.fillMaxSize(),
                 childNodes = childNodes,
                 engine = engine,
@@ -176,7 +174,7 @@ fun ARScreen2(
                     frame.value = updatedFrame
                 },
 
-                // Configuration des paramètres de la session AR
+                // Configuration of the parameters of the AR session
                 sessionConfiguration = { session, config ->
                     config.depthMode =
                         when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
@@ -187,36 +185,38 @@ fun ARScreen2(
                     config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
                 },
 
-                // Gestion des interactions de l'utilisateur
+                // Management of the gestures on the AR scene
                 onGestureListener = rememberOnGestureListener(
-                    // Gestion du clic simple
+                    // Setup of the gestures
                     onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
                         if (node is ModelNode) {
                             if (detectedEntity.contains("Phone number")) {
                                 val phoneNumberRegex = Regex("""Phone number:\s*([\d\s]+)""")
-                                // Si on clique sur le téléphone, lancer l'appel
+                                // If we detect a phone number, we extract it
                                 val phoneNumber = phoneNumberRegex.find(detectedEntity)
                                     ?.groupValues?.get(1)
                                     ?.replace(
                                         "\\s".toRegex(),
                                         ""
-                                    ) // Supprimer les espaces
+                                    ) // Delete spaces in the phone number
 
-                                // Ouverture de l'application d'appel
+                                // Open the phone app with the phone number
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
                                     data = Uri.parse("tel:$phoneNumber")
                                 }
                                 context.startActivity(intent)
                             }
                         } else {
-                            // Création d'un ancrage si aucun modèle n'est détecté sous le clic
+                            // Create an anchor if no model is detected under the click
                             val hitTestResult = frame.value?.hitTest(e.x, e.y)
+                            // Check if the hit test result is valid
                             hitTestResult?.firstOrNull {
                                 it.isValid(
                                     depthPoint = false,
                                     point = false
                                 )
                             }
+                                // Create an anchor if the hit test result is valid
                                 ?.createAnchorOrNull()?.let {
                                     val nodeModel = Utils.createAnchorNodePhone(
                                         engine = engine,
@@ -231,6 +231,7 @@ fun ARScreen2(
 
                     onDoubleTap = { e: MotionEvent, node: Node? ->
                         if (node is ModelNode) {
+                            // If we detect a URL, we extract it
                             if (detectedEntity.contains("URL")) {
                                 val urlRegex = Regex("""URL:\s*(\S+)""")
                                 var url = urlRegex.find(detectedEntity)?.groupValues?.get(1)
@@ -241,13 +242,14 @@ fun ARScreen2(
                                     }
                                 }
 
+                                // Open the browser with the URL
                                 val intent = Intent(Intent.ACTION_VIEW).apply {
                                     data = Uri.parse(url)
                                 }
                                 context.startActivity(intent)
                             }
                         } else {
-                            // Création d'un ancrage si aucun modèle n'est détecté sous le clic
+                            // Create an anchor if no model is detected under the click
                             val hitTestResult = frame.value?.hitTest(e.x, e.y)
                             hitTestResult?.firstOrNull {
                                 it.isValid(
@@ -267,7 +269,7 @@ fun ARScreen2(
                         }
                     },
 
-                    // Gestion de la rotation d'un modèle
+                    // Management of the rotation of a model
                     onRotate = { _, _, node: Node? ->
                         node?.let {
                             if (it is ModelNode) {
@@ -276,7 +278,7 @@ fun ARScreen2(
                         }
                     },
 
-                    // Gestion du zoom
+                    // Management of the zoom of a model
                     onScale = { detector, _, node: Node? ->
                         node?.let {
                             if (it is ModelNode) {
@@ -291,7 +293,7 @@ fun ARScreen2(
 
         }
 
-        // Affichage du texte détecté
+        // Display the detected entity on the screen - DEBUG (invisible)
         if (detectedEntity.isNotEmpty()) {
             Text(
                 detectedEntity,
@@ -302,7 +304,7 @@ fun ARScreen2(
             )
         }
 
-        // Bouton pour démarrer l'analyse
+        // Button to scan the poster
         FloatingActionButton(
             onClick = {
                 if (!isAnalyzing) {
@@ -337,7 +339,7 @@ fun ARScreen2(
             }
         }
 
-        // Bouton de retour
+        // Return button
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
